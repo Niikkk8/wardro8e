@@ -84,7 +84,7 @@ export default function ForShoppersPage() {
                     </h1>
                     <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
                         Discover fashion that speaks to your soul. No more endless scrolling through
-                        items that don't match your vibe.
+                        items that don&qapos;t match your vibe.
                     </p>
                 </motion.div>
             </section>
@@ -225,7 +225,7 @@ export default function ForShoppersPage() {
                                     <Star key={i} className="w-5 h-5 text-yellow-500 fill-current" />
                                 ))}
                             </div>
-                            <p className="text-muted-foreground mb-4">"{testimonial.content}"</p>
+                            <p className="text-muted-foreground mb-4">&quot;{testimonial.content}&quot;</p>
                             <div>
                                 <p className="font-medium">{testimonial.name}</p>
                                 <p className="text-sm text-muted-foreground">{testimonial.role}</p>
@@ -248,8 +248,8 @@ export default function ForShoppersPage() {
                         Ready to Find Your Style Match?
                     </h2>
                     <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-                        Join thousands of fashion lovers who've discovered their perfect style through AI.
-                        It's free and takes less than 5 minutes.
+                        Join thousands of fashion lovers who&apos;ve discovered their perfect style through AI.
+                        It&apos;s free and takes less than 5 minutes.
                     </p>
                     <Link
                         href="/contact"

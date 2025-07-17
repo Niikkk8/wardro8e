@@ -45,7 +45,7 @@ export default function AboutPage() {
                         Revolutionizing Fashion Discovery
                     </h1>
                     <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-                        We believe that finding your perfect style shouldn't be an endless scroll
+                        We believe that finding your perfect style shouldn&apos;t be an endless scroll
                         through generic recommendations.
                     </p>
                 </motion.div>
@@ -62,14 +62,14 @@ export default function AboutPage() {
                     >
                         <h2 className="text-3xl font-serif font-light mb-6">Our Mission</h2>
                         <p className="text-muted-foreground mb-4">
-                            At Wardro8e, we're on a mission to transform how people discover and
+                            At Wardro8e, we&apos;re on a mission to transform how people discover and
                             connect with fashion. By leveraging cutting-edge AI technology, we create
                             meaningful connections between style-conscious shoppers and the brands that
                             truly resonate with their aesthetic.
                         </p>
                         <p className="text-muted-foreground mb-6">
                             We believe in the power of personal style as a form of self-expression, and
-                            we're dedicated to making that expression more accessible, enjoyable, and
+                            we&apos;re dedicated to making that expression more accessible, enjoyable, and
                             authentic for everyone.
                         </p>
                         <div className="flex items-center space-x-4 p-4 bg-card rounded-xl border border-border">

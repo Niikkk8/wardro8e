@@ -186,8 +186,8 @@ export default function ForBrandsPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div className="bg-card p-6 rounded-xl border border-border">
                             <p className="text-muted-foreground mb-4">
-                                "Wardro8e helped us reach our target audience with precision. Our conversion
-                                rate increased by 250% in just 3 months."
+                                &quot;Wardro8e helped us reach our target audience with precision. Our conversion
+                                rate increased by 250% in just 3 months.&quot;
                             </p>
                             <div>
                                 <p className="font-medium">Minimal Studios</p>
@@ -196,8 +196,8 @@ export default function ForBrandsPage() {
                         </div>
                         <div className="bg-card p-6 rounded-xl border border-border">
                             <p className="text-muted-foreground mb-4">
-                                "The analytics dashboard gives us insights we never had before. We finally
-                                understand our customers' style preferences."
+                                &quot;The analytics dashboard gives us insights we never had before. We finally
+                                understand our customers&apos; style preferences.&quot;
                             </p>
                             <div>
                                 <p className="font-medium">Urban Thread Co.</p>

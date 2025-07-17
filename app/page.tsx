@@ -4,7 +4,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
-import { Sparkles, Heart, TrendingUp, ArrowRight, Star } from "lucide-react";
+import { Sparkles, Heart, TrendingUp, ArrowRight } from "lucide-react";
 
 export default function HomePage() {
   const features = [
@@ -61,7 +61,7 @@ export default function HomePage() {
                 href="/for-brands"
                 className="border border-border text-foreground px-8 py-3 rounded-full hover:border-primary hover:text-primary transition-all duration-300"
               >
-                I'm a Brand
+                I&apos;m a Brand
               </Link>
             </div>
             <div className="flex items-center space-x-8">
@@ -165,7 +165,7 @@ export default function HomePage() {
             Ready to Transform Your Style Journey?
           </h2>
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Join thousands of fashion lovers who've discovered their perfect style match through AI.
+            Join thousands of fashion lovers who&apos;ve discovered their perfect style match through AI.
           </p>
           <Link
             href="/for-shoppers"
