@@ -12,35 +12,24 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-    const [theme, setTheme] = useState<Theme>("light");
-    const [mounted, setMounted] = useState(false);
-
-    useEffect(() => {
-        // Check for saved theme preference or default to light
-        const savedTheme = localStorage.getItem("wardro8e-theme") as Theme;
-        if (savedTheme) {
-            setTheme(savedTheme);
+    const [theme, setTheme] = useState<Theme>(() => {
+        if (typeof window !== 'undefined') {
+            const savedTheme = localStorage.getItem("wardro8e-theme");
+            return savedTheme ? (savedTheme as Theme) : "light";
         }
-        setMounted(true);
-    }, []);
+        return "light";
+    });
 
     useEffect(() => {
-        if (!mounted) return;
-
         const root = window.document.documentElement;
         root.classList.remove("light", "dark");
         root.classList.add(theme);
         localStorage.setItem("wardro8e-theme", theme);
-    }, [theme, mounted]);
+    }, [theme]);
 
     const toggleTheme = () => {
-        setTheme(theme === "light" ? "dark" : "light");
+        setTheme(prevTheme => prevTheme === "light" ? "dark" : "light");
     };
-
-    // Prevent hydration mismatch
-    if (!mounted) {
-        return <>{children}</>;
-    }
 
     return (
         <ThemeContext.Provider value={{ theme, toggleTheme }}>
