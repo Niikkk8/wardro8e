@@ -443,49 +443,103 @@ export default function ForShoppersPage() {
                 </div>
             </section>
 
-            {/* CTA Section */}
-            <section className="container py-24">
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8 }}
-                    viewport={{ once: true }}
-                    className="bg-gradient-to-br from-primary/20 to-primary/5 rounded-3xl p-16 text-center"
-                >
-                    <h2 className="text-5xl md:text-6xl font-serif font-light mb-6">
-                        Ready to Find Your Style Match?
-                    </h2>
-                    <p className="text-xl md:text-2xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed">
-                        Join thousands of fashion lovers who&apos;ve discovered their perfect style through AI.
-                        It&apos;s free and takes less than 5 minutes to get started.
-                    </p>
-                    <div className="flex flex-col sm:flex-row gap-6 justify-center mb-12">
-                        <Link
-                            href="/contact"
-                            className="bg-primary text-primary-foreground px-12 py-5 text-lg rounded-full hover:opacity-90 transition-all duration-300 hover:scale-105 inline-flex items-center group"
-                        >
-                            Take the Style Quiz
-                            <ArrowRight className="ml-3 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                        </Link>
-                        <Link
-                            href="/about"
-                            className="border-2 border-border text-foreground px-12 py-5 text-lg rounded-full hover:border-primary hover:text-primary transition-all duration-300"
-                        >
-                            Learn More
-                        </Link>
+            {/* Redesigned Style Quiz section */}
+            <section className="py-16 bg-muted/30">
+                <div className="container flex flex-col md:flex-row items-center gap-10">
+                    <div className="flex-1 flex justify-center mb-8 md:mb-0">
+                        <div className="w-full max-w-xs md:max-w-sm rounded-2xl overflow-hidden shadow-lg bg-white flex flex-col items-center p-6">
+                            <Image src="https://cdn.pixabay.com/photo/2017/01/31/13/14/question-mark-2026615_1280.png" alt="Quiz illustration" width={80} height={80} className="w-20 h-20 mb-4" />
+                            <div className="w-full mb-2">
+                                <div className="h-2 bg-primary/20 rounded-full overflow-hidden">
+                                    <div className="h-2 bg-primary rounded-full w-1/3 transition-all" />
+                                </div>
+                            </div>
+                            <div className="w-full text-center mb-4">
+                                <span className="font-medium">What colors do you wear most often?</span>
+                                <div className="flex justify-center gap-2 mt-2">
+                                    <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs">Neutrals</span>
+                                    <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs">Brights</span>
+                                    <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs">Pastels</span>
+                                </div>
+                            </div>
+                            <button className="bg-primary text-primary-foreground px-6 py-2 rounded-full mt-2 hover:opacity-90 transition-all text-sm font-medium">Next</button>
+                        </div>
                     </div>
+                    <div className="flex-1">
+                        <div className="bg-card p-8 rounded-2xl shadow-md flex flex-col items-start">
+                            <h2 className="text-2xl md:text-3xl font-serif font-light mb-4">Start With a Style Quiz</h2>
+                            <p className="text-lg text-muted-foreground mb-6">Take our interactive quiz to help our AI understand your unique preferences and inspirations. Get your personalized style DNA and unlock a world of curated fashion.</p>
+                            <Link href="/" className="bg-primary text-primary-foreground px-8 py-3 text-base rounded-full hover:opacity-90 transition-all duration-300 hover:scale-105 inline-flex items-center group">Try the Style Quiz <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" /></Link>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-                    <div className="flex items-center justify-center space-x-8">
-                        <div className="flex items-center">
-                            <Shield className="w-5 h-5 text-primary mr-2" />
-                            <span className="text-muted-foreground">100% Free for Shoppers</span>
-                        </div>
-                        <div className="flex items-center">
-                            <Clock className="w-5 h-5 text-primary mr-2" />
-                            <span className="text-muted-foreground">5 Minute Setup</span>
+            {/* Redesigned benefits as horizontal scrollable carousel on mobile, staggered cards on desktop */}
+            <section className="py-16 bg-gradient-to-br from-primary/10 to-primary/5">
+                <div className="container">
+                    <h2 className="text-3xl md:text-4xl font-serif font-light mb-8 text-center">Why Shoppers Love Wardro8e</h2>
+                    <div className="flex gap-6 overflow-x-auto pb-4 md:grid md:grid-cols-2 md:gap-8 md:overflow-x-visible">
+                        {[{icon:<Sparkles className="w-8 h-8 text-primary mb-3" />,title:'Personalized Discovery',desc:'Find pieces that match your unique style preferences without endless scrolling.'},{icon:<Heart className="w-8 h-8 text-primary mb-3" />,title:'Discover Unique Brands',desc:'Connect with independent designers and brands that align with your aesthetic.'},{icon:<TrendingUp className="w-8 h-8 text-primary mb-3" />,title:'Style Evolution',desc:'Our AI learns and evolves with your preferences to refine your personal style.'},{icon:<Shield className="w-8 h-8 text-primary mb-3" />,title:'Quality Assured',desc:'Every brand is carefully vetted for quality, sustainability, and authentic design philosophy.'}].map((b,i)=>(
+                            <div key={i} className="bg-card p-6 rounded-2xl shadow-md flex flex-col items-center min-w-[220px] md:min-w-0 md:w-full">
+                                {b.icon}
+                                <h3 className="font-medium mb-2 text-center">{b.title}</h3>
+                                <p className="text-sm text-muted-foreground text-center">{b.desc}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* Redesigned gallery as masonry grid with hover overlays and favorite icons */}
+            <section className="py-16 bg-muted/30">
+                <div className="container">
+                    <h2 className="text-3xl md:text-4xl font-serif font-light mb-8 text-center">Shop the Looks</h2>
+                    <div className="columns-1 md:columns-3 gap-4 [column-fill:_balance]"><div className="flex flex-col gap-4">
+                        {["https://images.unsplash.com/photo-1487222477894-8943e31ef7b2?w=600&h=800&fit=crop","https://images.unsplash.com/photo-1479064555552-3ef4979f8908?w=600&h=800&fit=crop","https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=600&h=800&fit=crop","https://images.unsplash.com/photo-1517841905240-472988babdf9?w=600&h=800&fit=crop"].map((src,i)=>(
+                            <div key={i} className="relative rounded-2xl overflow-hidden shadow-xl group mb-4">
+                                <Image src={src} alt={`Look ${i+1}`} width={600} height={800} className="object-cover w-full h-[300px]" />
+                                <button className="absolute top-3 right-3 bg-white/80 rounded-full p-2 shadow hover:bg-primary/80 hover:text-white transition-all"><svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor' className='w-5 h-5'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 15l7-7 7 7' /></svg></button>
+                                <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white font-medium text-lg">View Look</div>
+                            </div>
+                        ))}</div></div>
+                </div>
+            </section>
+
+            {/* Add bold, gradient CTA */}
+            <section className="py-16 bg-gradient-to-r from-primary to-primary/70 text-center">
+                <div className="container">
+                    <h2 className="text-3xl md:text-4xl font-serif font-light mb-6 text-white">Ready to Discover Your Style?</h2>
+                    <Link href="/" className="bg-white text-primary px-10 py-4 text-lg rounded-full hover:opacity-90 transition-all duration-300 hover:scale-105 inline-flex items-center group font-semibold shadow-lg">Create Your Style Profile <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" /></Link>
+                </div>
+            </section>
+
+            {/* Find Your Style Tribe section (bold, editorial) */}
+            <section className="py-16 bg-gradient-to-br from-primary/10 to-primary/5">
+                <div className="container flex flex-col md:flex-row items-center gap-10">
+                    <div className="flex-1 flex flex-col items-center md:items-start">
+                        <Image src="https://cdn.pixabay.com/photo/2017/01/31/13/14/question-mark-2026615_1280.png" alt="Community illustration" width={128} height={128} className="w-32 h-32 mb-6" />
+                        <h2 className="text-3xl md:text-4xl font-serif font-light mb-4 text-center md:text-left">Find Your Style Tribe</h2>
+                        <p className="text-lg text-muted-foreground mb-6 text-center md:text-left">Join a vibrant community of fashion lovers, share your looks, and get inspired by others on their style journey. Connect, learn, and grow your style with us.</p>
+                        <Link href="/" className="bg-primary text-primary-foreground px-8 py-3 text-base rounded-full hover:opacity-90 transition-all duration-300 hover:scale-105 inline-flex items-center group">Join the Community <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" /></Link>
+                    </div>
+                    <div className="flex-1">
+                        {/* Testimonials carousel */}
+                        <div className="bg-card p-8 rounded-2xl shadow-xl flex flex-col gap-6">
+                            <h3 className="text-xl font-medium mb-2">What Our Members Say</h3>
+                            <div className="flex gap-4 overflow-x-auto pb-2">
+                                {[{name:'Sarah Chen',role:'Fashion Enthusiast',content:'Finally found brands that actually match my minimalist aesthetic. No more endless scrolling through items that don\'t speak to me!',img:'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop'},{name:'Emma Rodriguez',role:'Style Blogger',content:'The AI recommendations are spot-on. It\'s like having a personal stylist who really gets me and my evolving style.',img:'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop'},{name:'Lisa Thompson',role:'Sustainable Shopper',content:'Love discovering independent brands that align with my values. The quality verification gives me confidence in every purchase.',img:'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&h=100&fit=crop'}].map((t,i)=>(
+                                    <div key={i} className="bg-muted p-6 rounded-xl min-w-[220px] flex flex-col items-center shadow-md">
+                                        <Image src={t.img} alt={t.name} width={48} height={48} className="rounded-full w-12 h-12 mb-2 object-cover" />
+                                        <div className="font-medium mb-1">{t.name}</div>
+                                        <div className="text-xs text-muted-foreground mb-2">{t.role}</div>
+                                        <div className="text-sm text-center">“{t.content}”</div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     </div>
-                </motion.div>
+                </div>
             </section>
         </div>
     );

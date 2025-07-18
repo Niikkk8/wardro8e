@@ -7,14 +7,7 @@ import {
     Mail,
     Phone,
     MapPin,
-    Send,
     MessageSquare,
-    Clock,
-    Globe,
-    Shield,
-    Zap,
-    Users,
-    Calendar,
     ArrowRight,
     Instagram,
     Twitter,
@@ -22,36 +15,6 @@ import {
 } from "lucide-react";
 
 export default function ContactPage() {
-    const [formData, setFormData] = useState({
-        firstName: "",
-        lastName: "",
-        email: "",
-        company: "",
-        userType: "shopper",
-        subject: "General Inquiry",
-        message: "",
-    });
-
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isSubmitted, setIsSubmitted] = useState(false);
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value,
-        });
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsSubmitting(true);
-
-        // Simulate form submission
-        await new Promise(resolve => setTimeout(resolve, 2000));
-
-        setIsSubmitting(false);
-        setIsSubmitted(true);
-    };
 
     const contactInfo = [
         {
@@ -104,29 +67,6 @@ export default function ContactPage() {
         },
     ];
 
-    const departments = [
-        {
-            name: "Sales",
-            email: "sales@wardro8e.com",
-            description: "For partnership and pricing inquiries"
-        },
-        {
-            name: "Support",
-            email: "support@wardro8e.com",
-            description: "For technical help and account issues"
-        },
-        {
-            name: "Press",
-            email: "press@wardro8e.com",
-            description: "For media and PR inquiries"
-        },
-        {
-            name: "Careers",
-            email: "careers@wardro8e.com",
-            description: "Join our growing team"
-        },
-    ];
-
     return (
         <div className="pt-32 pb-16">
             {/* Hero Section */}
@@ -139,17 +79,17 @@ export default function ContactPage() {
                 >
                     <div className="inline-flex items-center px-4 py-2 bg-primary/10 rounded-full mb-6">
                         <MessageSquare className="w-4 h-4 text-primary mr-2" />
-                        <span className="text-sm font-medium text-primary">We're Here to Help</span>
+                        <span className="text-sm font-medium text-primary">We&apos;re Here to Help</span>
                     </div>
 
                     <h1 className="text-5xl md:text-6xl lg:text-7xl font-serif font-light mb-8">
-                        Get In
-                        <span className="block text-primary mt-2">Touch</span>
+                        Get In&nbsp;
+                        <span className="text-primary mt-2">Touch</span>
                     </h1>
 
                     <p className="text-xl md:text-2xl text-muted-foreground max-w-4xl mx-auto leading-relaxed">
                         Have questions about our platform? Want to partner with us? Or just want to say hello?
-                        We'd love to hear from you.
+                        We&apos;d love to hear from you.
                     </p>
                 </motion.div>
             </section>
@@ -186,277 +126,38 @@ export default function ContactPage() {
                 </div>
             </section>
 
-            {/* Contact Form and Info */}
-            <section className="py-24 bg-muted/30">
-                <div className="container">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-20">
-                        {/* Contact Form */}
-                        <motion.div
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.8 }}
-                        >
-                            <div className="bg-card p-10 rounded-3xl border border-border shadow-lg">
-                                <h2 className="text-3xl font-medium mb-8">Send us a message</h2>
-
-                                {!isSubmitted ? (
-                                    <div className="space-y-6">
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            <div>
-                                                <label className="block text-sm font-medium mb-2">First Name</label>
-                                                <input
-                                                    type="text"
-                                                    name="firstName"
-                                                    value={formData.firstName}
-                                                    onChange={handleChange}
-                                                    className="w-full px-4 py-3 border border-border rounded-xl bg-background focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                                                    placeholder="John"
-                                                    required
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-medium mb-2">Last Name</label>
-                                                <input
-                                                    type="text"
-                                                    name="lastName"
-                                                    value={formData.lastName}
-                                                    onChange={handleChange}
-                                                    className="w-full px-4 py-3 border border-border rounded-xl bg-background focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                                                    placeholder="Doe"
-                                                    required
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            <div>
-                                                <label className="block text-sm font-medium mb-2">Email</label>
-                                                <input
-                                                    type="email"
-                                                    name="email"
-                                                    value={formData.email}
-                                                    onChange={handleChange}
-                                                    className="w-full px-4 py-3 border border-border rounded-xl bg-background focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                                                    placeholder="john@example.com"
-                                                    required
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-medium mb-2">Company (Optional)</label>
-                                                <input
-                                                    type="text"
-                                                    name="company"
-                                                    value={formData.company}
-                                                    onChange={handleChange}
-                                                    className="w-full px-4 py-3 border border-border rounded-xl bg-background focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                                                    placeholder="Your Company"
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-sm font-medium mb-2">I am a</label>
-                                            <div className="flex space-x-6">
-                                                <label className="flex items-center">
-                                                    <input
-                                                        type="radio"
-                                                        name="userType"
-                                                        value="shopper"
-                                                        checked={formData.userType === "shopper"}
-                                                        onChange={handleChange}
-                                                        className="mr-2"
-                                                    />
-                                                    <span>Shopper</span>
-                                                </label>
-                                                <label className="flex items-center">
-                                                    <input
-                                                        type="radio"
-                                                        name="userType"
-                                                        value="brand"
-                                                        checked={formData.userType === "brand"}
-                                                        onChange={handleChange}
-                                                        className="mr-2"
-                                                    />
-                                                    <span>Brand</span>
-                                                </label>
-                                                <label className="flex items-center">
-                                                    <input
-                                                        type="radio"
-                                                        name="userType"
-                                                        value="other"
-                                                        checked={formData.userType === "other"}
-                                                        onChange={handleChange}
-                                                        className="mr-2"
-                                                    />
-                                                    <span>Other</span>
-                                                </label>
-                                            </div>
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-sm font-medium mb-2">Subject</label>
-                                            <select
-                                                name="subject"
-                                                value={formData.subject}
-                                                onChange={handleChange}
-                                                className="w-full px-4 py-3 border border-border rounded-xl bg-background focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                                            >
-                                                <option>General Inquiry</option>
-                                                <option>Brand Partnership</option>
-                                                <option>Technical Support</option>
-                                                <option>Press Inquiry</option>
-                                                <option>Careers</option>
-                                                <option>Other</option>
-                                            </select>
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-sm font-medium mb-2">Message</label>
-                                            <textarea
-                                                name="message"
-                                                value={formData.message}
-                                                onChange={handleChange}
-                                                rows={6}
-                                                className="w-full px-4 py-3 border border-border rounded-xl bg-background focus:ring-2 focus:ring-primary focus:border-transparent transition-all resize-none"
-                                                placeholder="Tell us what's on your mind..."
-                                                required
-                                            />
-                                        </div>
-
-                                        <button
-                                            onClick={handleSubmit}
-                                            disabled={isSubmitting}
-                                            className="w-full bg-primary text-primary-foreground py-4 text-lg rounded-full hover:opacity-90 transition-all duration-300 hover:scale-105 flex items-center justify-center group disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            {isSubmitting ? (
-                                                <span>Sending...</span>
-                                            ) : (
-                                                <>
-                                                    Send Message
-                                                    <Send className="ml-3 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                                                </>
-                                            )}
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <div className="text-center py-12">
-                                        <div className="bg-primary/10 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
-                                            <Send className="w-10 h-10 text-primary" />
-                                        </div>
-                                        <h3 className="text-2xl font-medium mb-4">Message Sent!</h3>
-                                        <p className="text-lg text-muted-foreground mb-8">
-                                            Thanks for reaching out. We'll get back to you within 24 hours.
-                                        </p>
-                                        <button
-                                            onClick={() => {
-                                                setIsSubmitted(false);
-                                                setFormData({
-                                                    firstName: "",
-                                                    lastName: "",
-                                                    email: "",
-                                                    company: "",
-                                                    userType: "shopper",
-                                                    subject: "General Inquiry",
-                                                    message: "",
-                                                });
-                                            }}
-                                            className="text-primary font-medium hover:underline"
-                                        >
-                                            Send another message
-                                        </button>
-                                    </div>
-                                )}
+            {/* Clean, elegant contact form */}
+            <section className="py-12 bg-muted/30">
+                <div className="container flex flex-col md:flex-row items-center gap-10">
+                    <div className="flex-1 flex flex-col items-start gap-4 border-r border-border pr-0 md:pr-8 md:border-r">
+                        <h2 className="text-3xl md:text-4xl font-serif font-light mb-2">Contact Us</h2>
+                        <p className="text-base text-muted-foreground">Have a question or want to partner with us? Reach out and our team will get back to you soon.</p>
+                        <ul className="mb-2 space-y-1">
+                            <li><span className="font-medium">Email:</span> <a href="mailto:hello@wardro8e.com" className="text-primary hover:underline">hello@wardro8e.com</a></li>
+                            <li><span className="font-medium">Office:</span> 123 Fashion District, San Francisco, CA</li>
+                        </ul>
+                        <div className="rounded-2xl overflow-hidden shadow-lg w-full max-w-xs h-32">
+                            <Image src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=400&h=200&fit=crop" alt="Office" width={200} height={128} className="object-cover w-full h-full" />
+                        </div>
+                    </div>
+                    <div className="flex-1 w-full max-w-md">
+                        <form className="bg-white/80 backdrop-blur-md border border-primary/20 shadow-2xl p-8 rounded-2xl flex flex-col gap-6">
+                            <div>
+                                <label htmlFor="contact-name" className="block text-sm font-medium mb-2 text-muted-foreground">Your Name</label>
+                                <input type="text" name="name" id="contact-name" className="w-full px-4 py-3 rounded-lg border border-border bg-background focus:ring-2 focus:ring-primary focus:border-primary transition-all text-base" required />
                             </div>
-                        </motion.div>
-
-                        {/* Additional Info */}
-                        <motion.div
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.8 }}
-                            className="space-y-8"
-                        >
-                            {/* Department Contacts */}
-                            <div className="bg-card p-8 rounded-3xl border border-border">
-                                <h3 className="text-2xl font-medium mb-6">Contact Our Teams</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    {departments.map((dept, index) => (
-                                        <div key={index} className="p-6 bg-muted rounded-xl">
-                                            <h4 className="font-medium text-lg mb-2">{dept.name}</h4>
-                                            <p className="text-muted-foreground mb-2">{dept.description}</p>
-                                            <a
-                                                href={`mailto:${dept.email}`}
-                                                className="text-primary hover:underline"
-                                            >
-                                                {dept.email}
-                                            </a>
-                                        </div>
-                                    ))}
-                                </div>
+                            <div>
+                                <label htmlFor="contact-email" className="block text-sm font-medium mb-2 text-muted-foreground">Your Email</label>
+                                <input type="email" name="email" id="contact-email" className="w-full px-4 py-3 rounded-lg border border-border bg-background focus:ring-2 focus:ring-primary focus:border-primary transition-all text-base" required />
                             </div>
-
-                            {/* Office Image */}
-                            <div className="relative h-[300px] rounded-3xl overflow-hidden shadow-lg">
-                                <Image
-                                    src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&h=400&fit=crop"
-                                    alt="Wardro8e Office"
-                                    fill
-                                    className="object-cover"
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                                <div className="absolute bottom-8 left-8 right-8 text-white">
-                                    <h3 className="text-2xl font-medium mb-2">Visit Our Office</h3>
-                                    <p className="text-white/80">123 Fashion District, San Francisco, CA</p>
-                                </div>
+                            <div>
+                                <label htmlFor="contact-message" className="block text-sm font-medium mb-2 text-muted-foreground">Your Message</label>
+                                <textarea name="message" id="contact-message" className="w-full px-4 py-3 rounded-lg border border-border bg-background focus:ring-2 focus:ring-primary focus:border-primary transition-all text-base resize-none" rows={4} required />
                             </div>
-
-                            {/* Quick Links */}
-                            <div className="bg-card p-8 rounded-3xl border border-border">
-                                <h4 className="text-xl font-medium mb-6 flex items-center">
-                                    <Zap className="w-6 h-6 mr-2 text-primary" />
-                                    Quick Resources
-                                </h4>
-                                <div className="space-y-4">
-                                    <a href="#" className="flex items-center text-lg text-muted-foreground hover:text-primary transition-colors">
-                                        <MessageSquare className="w-5 h-5 mr-3" />
-                                        Visit our Help Center
-                                    </a>
-                                    <a href="#" className="flex items-center text-lg text-muted-foreground hover:text-primary transition-colors">
-                                        <Shield className="w-5 h-5 mr-3" />
-                                        Check System Status
-                                    </a>
-                                    <a href="#" className="flex items-center text-lg text-muted-foreground hover:text-primary transition-colors">
-                                        <Calendar className="w-5 h-5 mr-3" />
-                                        Schedule a Demo
-                                    </a>
-                                    <a href="#" className="flex items-center text-lg text-muted-foreground hover:text-primary transition-colors">
-                                        <Users className="w-5 h-5 mr-3" />
-                                        Join Community Forum
-                                    </a>
-                                </div>
-                            </div>
-
-                            {/* Response Time */}
-                            <div className="bg-primary/5 p-8 rounded-3xl">
-                                <div className="flex items-center mb-4">
-                                    <Clock className="w-6 h-6 mr-3 text-primary" />
-                                    <p className="text-xl font-medium">Average Response Time</p>
-                                </div>
-                                <p className="text-lg text-muted-foreground mb-4">
-                                    We typically respond within 2-4 hours during business hours.
-                                </p>
-                                <div className="grid grid-cols-2 gap-4 mt-6">
-                                    <div className="bg-card p-4 rounded-xl text-center">
-                                        <p className="text-2xl font-light">2 hrs</p>
-                                        <p className="text-sm text-muted-foreground">Email Response</p>
-                                    </div>
-                                    <div className="bg-card p-4 rounded-xl text-center">
-                                        <p className="text-2xl font-light">5 min</p>
-                                        <p className="text-sm text-muted-foreground">Chat Response</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </motion.div>
+                            <button type="submit" className="bg-gradient-to-r from-primary to-primary/70 text-white px-6 py-3 rounded-full shadow-lg hover:opacity-90 transition-all hover:scale-105 text-base font-semibold">Send Message</button>
+                            {/* Success message placeholder */}
+                            {/* <div className="text-green-600 text-center font-medium mt-2">Thank you! We'll be in touch soon.</div> */}
+                        </form>
                     </div>
                 </div>
             </section>

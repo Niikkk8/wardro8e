@@ -3,7 +3,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { Award, Sparkles, Users, Shield, Target, Globe, Heart, Zap } from "lucide-react";
+import { Award, Sparkles, Users, Shield, Target, Globe, Heart } from "lucide-react";
 
 export default function AboutPage() {
     const values = [
@@ -27,20 +27,6 @@ export default function AboutPage() {
             title: "Passion",
             description: "Driven by our love for fashion and technology to create meaningful experiences.",
         },
-    ];
-
-    const milestones = [
-        { year: "2022", event: "Founded with a vision to revolutionize fashion discovery", metric: "Day 1" },
-        { year: "2023", event: "Launched AI-powered style matching algorithm", metric: "1K Users" },
-        { year: "2024", event: "Reached 10,000 active users and 500 partner brands", metric: "10K Users" },
-        { year: "2024", event: "Won Fashion Tech Award for Best AI Innovation", metric: "Industry Recognition" },
-    ];
-
-    const teamStats = [
-        { number: "20+", label: "Team Members", description: "Passionate professionals" },
-        { number: "8", label: "Countries", description: "Global perspective" },
-        { number: "15+", label: "Years Experience", description: "Average in fashion/tech" },
-        { number: "100%", label: "Dedication", description: "To our mission" },
     ];
 
     return (
@@ -275,142 +261,110 @@ export default function AboutPage() {
                 </div>
             </section>
 
-            {/* Timeline Section */}
-            <section className="py-24 bg-primary/5">
-                <div className="container">
-                    <motion.h2
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8 }}
-                        viewport={{ once: true }}
-                        className="text-4xl md:text-5xl font-serif font-light text-center mb-16"
-                    >
-                        Our Journey
-                    </motion.h2>
-                    <div className="max-w-4xl mx-auto">
-                        {milestones.map((milestone, index) => (
-                            <motion.div
-                                key={index}
-                                initial={{ opacity: 0, x: index % 2 === 0 ? -20 : 20 }}
-                                whileInView={{ opacity: 1, x: 0 }}
-                                transition={{ duration: 0.5, delay: index * 0.1 }}
-                                viewport={{ once: true }}
-                                className="flex items-center mb-12 last:mb-0"
-                            >
-                                <div className="bg-primary text-primary-foreground rounded-2xl px-6 py-3 min-w-[120px] text-center">
-                                    <p className="text-xl font-medium">{milestone.year}</p>
-                                    <p className="text-sm opacity-80">{milestone.metric}</p>
+            {/* Editorial Our Journey timeline */}
+            <section className="py-16 bg-muted/30">
+                <div className="container max-w-2xl mx-auto">
+                    <h2 className="text-3xl md:text-4xl font-serif font-light mb-8 text-center">Our Journey</h2>
+                    <div className="relative pl-8">
+                        <div className="absolute left-4 top-0 bottom-0 w-1 bg-primary/20 rounded-full" />
+                        {[{year:'2022',event:'Founded with a vision to revolutionize fashion discovery'},{year:'2023',event:'Launched AI-powered style matching algorithm'},{year:'2024',event:'Reached 10,000 active users and 500 partner brands'},{year:'2024',event:'Won Fashion Tech Award for Best AI Innovation'}].map((m,i)=>(
+                            <div key={i} className="mb-12 flex items-start relative">
+                                <div className="absolute -left-7 top-2 w-5 h-5 bg-primary rounded-full border-4 border-white shadow-lg" />
+                                <div className="ml-8">
+                                    <div className="text-primary font-semibold mb-1">{m.year}</div>
+                                    <div className="text-base text-muted-foreground">{m.event}</div>
                                 </div>
-                                <div className="ml-8 flex-1 p-6 bg-card rounded-2xl border border-border">
-                                    <p className="text-lg">{milestone.event}</p>
-                                </div>
-                            </motion.div>
+                            </div>
                         ))}
                     </div>
                 </div>
             </section>
 
-            {/* Team Section */}
-            <section className="container py-24">
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8 }}
-                    viewport={{ once: true }}
-                    className="text-center mb-16"
-                >
-                    <h2 className="text-4xl md:text-5xl font-serif font-light mb-6">Meet Our Team</h2>
-                    <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto">
-                        A passionate group of fashion enthusiasts, technologists, and designers working
-                        together to reimagine fashion discovery.
-                    </p>
-                </motion.div>
-
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-16">
-                    {teamStats.map((stat, index) => (
-                        <motion.div
-                            key={index}
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            whileInView={{ opacity: 1, scale: 1 }}
-                            transition={{ duration: 0.5, delay: index * 0.1 }}
-                            viewport={{ once: true }}
-                            className="bg-card p-8 rounded-2xl border border-border text-center"
-                        >
-                            <p className="text-4xl font-light mb-2">{stat.number}</p>
-                            <p className="text-lg font-medium mb-1">{stat.label}</p>
-                            <p className="text-sm text-muted-foreground">{stat.description}</p>
-                        </motion.div>
-                    ))}
-                </div>
-
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8 }}
-                    viewport={{ once: true }}
-                    className="bg-card p-12 rounded-3xl border border-border"
-                >
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-                        <div>
-                            <h3 className="text-3xl font-medium mb-6">Join Our Mission</h3>
-                            <p className="text-lg text-muted-foreground mb-6 leading-relaxed">
-                                We&apos;re always looking for talented individuals who share our passion for
-                                fashion and technology. If you&apos;re excited about revolutionizing how people
-                                discover and connect with fashion, we&apos;d love to hear from you.
-                            </p>
-                            <a
-                                href="#"
-                                className="inline-flex items-center text-primary font-medium hover:underline"
-                            >
-                                View Open Positions
-                                <Zap className="w-4 h-4 ml-2" />
-                            </a>
+            {/* Our Values section with tasteful SVG icons and more detail */}
+            <section className="py-16 bg-gradient-to-br from-primary/10 to-primary/5">
+                <div className="container">
+                    <h2 className="text-3xl md:text-4xl font-serif font-light mb-8 text-center">Our Values</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+                        <div className="bg-card p-6 rounded-2xl shadow-md flex flex-col items-center">
+                            <svg className="w-8 h-8 text-primary mb-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M13 16h-1v-4h-1m1-4h.01M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z" /></svg>
+                            <h3 className="font-medium mb-2 text-center">Innovation</h3>
+                            <p className="text-sm text-muted-foreground text-center">We push boundaries with AI and technology to create the future of fashion discovery and personalization.</p>
                         </div>
-                        <div className="relative h-[300px] rounded-2xl overflow-hidden">
-                            <Image
-                                src="https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=600&h=400&fit=crop"
-                                alt="Team working"
-                                fill
-                                className="object-cover"
-                            />
+                        <div className="bg-card p-6 rounded-2xl shadow-md flex flex-col items-center">
+                            <svg className="w-8 h-8 text-primary mb-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M17 20h5v-2a4 4 0 0 0-3-3.87M9 20H4v-2a4 4 0 0 1 3-3.87M17 8V7a5 5 0 0 0-10 0v1a5 5 0 0 0 10 0z" /></svg>
+                            <h3 className="font-medium mb-2 text-center">Community</h3>
+                            <p className="text-sm text-muted-foreground text-center">We build connections between brands and shoppers who share values, style, and vision for a better industry.</p>
+                        </div>
+                        <div className="bg-card p-6 rounded-2xl shadow-md flex flex-col items-center">
+                            <svg className="w-8 h-8 text-primary mb-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7c0 6 8 10 8 10z" /></svg>
+                            <h3 className="font-medium mb-2 text-center">Trust</h3>
+                            <p className="text-sm text-muted-foreground text-center">We ensure authenticity, privacy, and quality in every partnership and user experience.</p>
+                        </div>
+                        <div className="bg-card p-6 rounded-2xl shadow-md flex flex-col items-center">
+                            <svg className="w-8 h-8 text-primary mb-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41 1.01 4.5 2.09C13.09 4.01 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" /></svg>
+                            <h3 className="font-medium mb-2 text-center">Passion</h3>
+                            <p className="text-sm text-muted-foreground text-center">We are driven by a love for fashion, technology, and helping people express themselves.</p>
                         </div>
                     </div>
-                </motion.div>
+                </div>
             </section>
 
-            {/* Vision Section */}
-            <section className="py-24 bg-gradient-to-br from-primary/10 to-primary/5">
+            {/* Our Team section as modern grid with real photos, names, roles, and short bios */}
+            <section className="py-16 bg-muted/30">
                 <div className="container">
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8 }}
-                        viewport={{ once: true }}
-                        className="text-center max-w-4xl mx-auto"
-                    >
-                        <h2 className="text-4xl md:text-5xl font-serif font-light mb-8">Our Vision for the Future</h2>
-                        <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed mb-12">
-                            We envision a world where fashion discovery is effortless, personalized, and inspiring.
-                            Where every shopping experience feels like it was curated just for you. Where independent
-                            brands can connect with their perfect audience, and shoppers can express their unique
-                            style with confidence.
-                        </p>
-                        <div className="flex flex-col sm:flex-row gap-6 justify-center">
-                            <a
-                                href="/for-shoppers"
-                                className="bg-primary text-primary-foreground px-10 py-4 text-lg rounded-full hover:opacity-90 transition-all duration-300 hover:scale-105 inline-flex items-center group"
-                            >
-                                Join Our Community
-                                <Heart className="ml-3 w-5 h-5 group-hover:scale-110 transition-transform" />
-                            </a>
-                            <a
-                                href="/for-brands"
-                                className="border-2 border-border text-foreground px-10 py-4 text-lg rounded-full hover:border-primary hover:text-primary transition-all duration-300"
-                            >
-                                Partner With Us
-                            </a>
+                    <h2 className="text-3xl md:text-4xl font-serif font-light mb-8 text-center">Meet Our Team</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+                        <div className="bg-card p-6 rounded-2xl shadow-md flex flex-col items-center">
+                            <Image src="https://images.unsplash.com/photo-1511367461989-f85a21fda167?w=200&h=200&fit=crop" alt="Ava Patel" className="rounded-full mb-3 object-cover w-20 h-20" />
+                            <h3 className="font-medium text-center">Ava Patel</h3>
+                            <p className="text-xs text-muted-foreground text-center mb-2">Co-Founder & CEO</p>
+                            <p className="text-xs text-muted-foreground text-center">Ava leads Wardro8e with a vision for a more personal, inclusive, and tech-driven fashion world.</p>
                         </div>
-                    </motion.div>
+                        <div className="bg-card p-6 rounded-2xl shadow-md flex flex-col items-center">
+                            <Image src="https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=200&h=200&fit=crop" alt="Liam Chen" className="rounded-full mb-3 object-cover w-20 h-20" />
+                            <h3 className="font-medium text-center">Liam Chen</h3>
+                            <p className="text-xs text-muted-foreground text-center mb-2">CTO</p>
+                            <p className="text-xs text-muted-foreground text-center">Liam is passionate about building scalable AI and empowering users with smart technology.</p>
+                        </div>
+                        <div className="bg-card p-6 rounded-2xl shadow-md flex flex-col items-center">
+                            <Image src="https://images.unsplash.com/photo-1519340333755-c1aa5571fd46?w=200&h=200&fit=crop" alt="Sofia Rossi" className="rounded-full mb-3 object-cover w-20 h-20" />
+                            <h3 className="font-medium text-center">Sofia Rossi</h3>
+                            <p className="text-xs text-muted-foreground text-center mb-2">Head of Design</p>
+                            <p className="text-xs text-muted-foreground text-center">Sofia brings creativity and a user-first approach to every design decision at Wardro8e.</p>
+                        </div>
+                        <div className="bg-card p-6 rounded-2xl shadow-md flex flex-col items-center">
+                            <Image src="https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=200&h=200&fit=crop" alt="Noah Kim" className="rounded-full mb-3 object-cover w-20 h-20" />
+                            <h3 className="font-medium text-center">Noah Kim</h3>
+                            <p className="text-xs text-muted-foreground text-center mb-2">Lead Engineer</p>
+                            <p className="text-xs text-muted-foreground text-center">Noah ensures our platform is fast, reliable, and always evolving for our users.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Our Vision section as large immersive image with overlay and concise statement */}
+            <section className="relative py-24">
+                <Image src="https://images.unsplash.com/photo-1465101046530-73398c7f28ca?w=1200&h=400&fit=crop" alt="Vision" className="absolute inset-0 w-full h-full object-cover opacity-60" />
+                <div className="container relative z-10 flex flex-col items-center justify-center min-h-[300px]">
+                    <h2 className="text-3xl md:text-4xl font-serif font-light mb-4 text-white drop-shadow-lg">Our Vision</h2>
+                    <p className="text-lg text-white/90 max-w-2xl text-center drop-shadow">Fashion discovery should be inspiring, personal, and effortless for everyone.</p>
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-b from-black/40 to-transparent z-0" />
+            </section>
+
+            {/* Add Why We Exist micro-section */}
+            <section className="py-10 bg-muted/50">
+                <div className="container flex flex-col items-center">
+                    <div className="flex items-center gap-3 mb-2"><span className="text-2xl">✨</span><span className="font-serif text-lg font-light">Why We Exist</span></div>
+                    <blockquote className="text-center text-muted-foreground max-w-xl italic">“We believe personal style is a journey, not a destination. Our mission is to empower everyone to discover, express, and evolve their unique fashion identity.”</blockquote>
+                </div>
+            </section>
+
+            {/* What Drives Us section visually distinct but consistent */}
+            <section className="py-12 bg-muted/50">
+                <div className="container max-w-2xl mx-auto text-center">
+                    <h3 className="text-xl font-serif font-light mb-4">What Drives Us</h3>
+                    <p className="text-base text-muted-foreground">Wardro8e was founded to make fashion discovery more meaningful and accessible. We believe in empowering people to express their individuality, connect with brands that share their values, and enjoy a more sustainable, authentic shopping experience. Our mission is to blend technology and creativity to help everyone find their unique style journey.</p>
                 </div>
             </section>
         </div>

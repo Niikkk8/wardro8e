@@ -13,7 +13,6 @@ import {
   Zap,
   Shield,
   Users,
-  BarChart3,
   Clock,
   Award
 } from "lucide-react";
@@ -42,11 +41,6 @@ export default function HomePage() {
     { value: "500+", label: "Partner Brands", description: "Curated designers" },
     { value: "98%", label: "Match Accuracy", description: "AI precision" },
     { value: "2M+", label: "Style Matches", description: "Happy connections" },
-  ];
-
-  const brandLogos = [
-    "Minimal Studios", "Urban Thread", "Ethereal Design", "Nordic Style",
-    "Avant Garde Co.", "Sustainable Chic", "Modern Muse", "Artisan Collective"
   ];
 
   return (
@@ -113,8 +107,8 @@ export default function HomePage() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="relative"
           >
-            <div className="grid grid-cols-2 gap-6">
-              <div className="space-y-6">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-4">
                 <div className="relative h-[320px] rounded-3xl overflow-hidden shadow-2xl">
                   <Image
                     src="https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=400&h=600&fit=crop"
@@ -151,8 +145,8 @@ export default function HomePage() {
                 </div>
               </div>
             </div>
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-background rounded-full p-8 shadow-2xl">
-              <Sparkles className="w-12 h-12 text-primary animate-pulse" />
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-background rounded-full p-4 shadow-2xl">
+              <Sparkles className="w-10 h-10 text-primary animate-pulse" />
             </div>
           </motion.div>
         </div>
@@ -197,8 +191,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Brand Showcase */}
-      <section className="py-24">
+      {/* Trending Now / Inspiration Grid */}
+      <section className="py-24 bg-gradient-to-br from-primary/10 to-primary/5">
         <div className="container">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -208,169 +202,142 @@ export default function HomePage() {
             className="text-center mb-16"
           >
             <h2 className="text-5xl md:text-6xl font-serif font-light mb-6">
-              Featured Partner Brands
+              Trending Now
             </h2>
             <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto">
-              Discover curated collections from independent designers and emerging brands
+              Explore the latest looks and inspiration from our AI-powered style feed.
             </p>
           </motion.div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-16">
-            {brandLogos.map((brand, index) => (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[1,2,3].map((i) => (
               <motion.div
-                key={index}
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, delay: index * 0.05 }}
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.1 * i }}
                 viewport={{ once: true }}
-                className="bg-card p-8 rounded-2xl border border-border hover:border-primary transition-all duration-300 flex items-center justify-center"
+                className="relative h-[500px] rounded-3xl overflow-hidden shadow-xl group"
               >
-                <p className="text-lg font-medium text-center">{brand}</p>
+                <Image
+                  src={`https://images.unsplash.com/photo-15${i+3}9109136881-3be0616acf4b?w=600&h=800&fit=crop`}
+                  alt={`Trending fashion ${i}`}
+                  fill
+                  className="object-cover group-hover:scale-110 transition-transform duration-700"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                <div className="absolute bottom-8 left-8 right-8">
+                  <h3 className="text-2xl font-medium text-white mb-2">{['Minimalist Edit','Urban Street','Sustainable Picks'][i-1]}</h3>
+                  <p className="text-white/80">{['Clean lines, timeless pieces','Bold statements, comfort first','Eco-conscious style'][i-1]}</p>
+                </div>
               </motion.div>
             ))}
-          </div>
-
-          {/* Fashion Gallery */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-              viewport={{ once: true }}
-              className="relative h-[500px] rounded-3xl overflow-hidden shadow-xl group"
-            >
-              <Image
-                src="https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=600&h=800&fit=crop"
-                alt="Fashion showcase 1"
-                fill
-                className="object-cover group-hover:scale-110 transition-transform duration-700"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-              <div className="absolute bottom-8 left-8 right-8">
-                <h3 className="text-2xl font-medium text-white mb-2">Minimalist Collection</h3>
-                <p className="text-white/80">Curated for the modern minimalist</p>
-              </div>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.1 }}
-              viewport={{ once: true }}
-              className="relative h-[500px] rounded-3xl overflow-hidden shadow-xl group"
-            >
-              <Image
-                src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&h=800&fit=crop"
-                alt="Fashion showcase 2"
-                fill
-                className="object-cover group-hover:scale-110 transition-transform duration-700"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-              <div className="absolute bottom-8 left-8 right-8">
-                <h3 className="text-2xl font-medium text-white mb-2">Urban Streetwear</h3>
-                <p className="text-white/80">Bold designs for city life</p>
-              </div>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              viewport={{ once: true }}
-              className="relative h-[500px] rounded-3xl overflow-hidden shadow-xl group"
-            >
-              <Image
-                src="https://images.unsplash.com/photo-1581044777550-4cfa60707c03?w=600&h=800&fit=crop"
-                alt="Fashion showcase 3"
-                fill
-                className="object-cover group-hover:scale-110 transition-transform duration-700"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-              <div className="absolute bottom-8 left-8 right-8">
-                <h3 className="text-2xl font-medium text-white mb-2">Sustainable Fashion</h3>
-                <p className="text-white/80">Eco-conscious style choices</p>
-              </div>
-            </motion.div>
           </div>
         </div>
       </section>
 
-      {/* How It Works Preview */}
-      <section className="py-24 bg-primary/5">
+      {/* AI Style Profiling */}
+      <section className="py-20 bg-muted/30">
         <div className="container">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-5xl md:text-6xl font-serif font-light mb-6">
-              Your Style Journey Starts Here
-            </h2>
-            <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto">
-              Three simple steps to revolutionize your fashion discovery experience
-            </p>
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} viewport={{ once: true }} className="text-center mb-12">
+            <h2 className="text-4xl md:text-5xl font-serif font-light mb-4">AI Style Profiling</h2>
+            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">Our advanced AI creates a detailed style profile based on your preferences and fashion choices.</p>
           </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-16">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              viewport={{ once: true }}
-              className="text-center"
-            >
-              <div className="bg-primary text-primary-foreground w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl font-medium">
-                1
-              </div>
-              <h3 className="text-2xl font-medium mb-4">Create Your Profile</h3>
-              <p className="text-lg text-muted-foreground">
-                Answer a few style questions and let our AI understand your unique fashion DNA
-              </p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              viewport={{ once: true }}
-              className="text-center"
-            >
-              <div className="bg-primary text-primary-foreground w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl font-medium">
-                2
-              </div>
-              <h3 className="text-2xl font-medium mb-4">Get Matched</h3>
-              <p className="text-lg text-muted-foreground">
-                Our AI connects you with brands and pieces that perfectly match your style
-              </p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              viewport={{ once: true }}
-              className="text-center"
-            >
-              <div className="bg-primary text-primary-foreground w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl font-medium">
-                3
-              </div>
-              <h3 className="text-2xl font-medium mb-4">Shop & Evolve</h3>
-              <p className="text-lg text-muted-foreground">
-                Discover new favorites while our AI learns and refines your recommendations
-              </p>
-            </motion.div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="bg-card p-8 rounded-2xl shadow-lg flex flex-col items-center">
+              <Sparkles className="w-8 h-8 text-primary mb-4" />
+              <h3 className="text-xl font-medium mb-2">Personal Style DNA Mapping</h3>
+              <p className="text-base text-muted-foreground">Our AI analyzes thousands of style attributes to create your unique fashion fingerprint.</p>
+            </div>
+            <div className="bg-card p-8 rounded-2xl shadow-lg flex flex-col items-center">
+              <TrendingUp className="w-8 h-8 text-primary mb-4" />
+              <h3 className="text-xl font-medium mb-2">Personalized Trend Prediction</h3>
+              <p className="text-base text-muted-foreground">Get curated trend forecasts that align with your unique style preferences.</p>
+            </div>
+            <div className="bg-card p-8 rounded-2xl shadow-lg flex flex-col items-center">
+              <Heart className="w-8 h-8 text-primary mb-4" />
+              <h3 className="text-xl font-medium mb-2">Style Evolution Tracking</h3>
+              <p className="text-base text-muted-foreground">Our AI learns and evolves with you, continuously refining recommendations.</p>
+            </div>
           </div>
+        </div>
+      </section>
 
-          <div className="text-center">
-            <Link
-              href="/for-shoppers"
-              className="bg-primary text-primary-foreground px-10 py-4 text-lg rounded-full hover:opacity-90 transition-all duration-300 hover:scale-105 inline-flex items-center group"
-            >
-              Start Your Journey
-              <ArrowRight className="ml-3 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+      {/* How It Works */}
+      <section className="py-20 bg-gradient-to-br from-primary/10 to-primary/5">
+        <div className="container">
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} viewport={{ once: true }} className="text-center mb-12">
+            <h2 className="text-4xl md:text-5xl font-serif font-light mb-4">How Wardro8e Works</h2>
+            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">Your personal style journey in three simple steps</p>
+          </motion.div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="flex flex-col items-center">
+              <div className="bg-primary text-primary-foreground w-14 h-14 rounded-full flex items-center justify-center mb-4 text-xl font-medium">1</div>
+              <h3 className="text-lg font-medium mb-2">Express Your Style</h3>
+              <p className="text-base text-muted-foreground text-center">Take our fun style quiz that helps our AI understand your unique preferences and fashion inspirations.</p>
+            </div>
+            <div className="flex flex-col items-center">
+              <div className="bg-primary text-primary-foreground w-14 h-14 rounded-full flex items-center justify-center mb-4 text-xl font-medium">2</div>
+              <h3 className="text-lg font-medium mb-2">Discover Your Fashion Universe</h3>
+              <p className="text-base text-muted-foreground text-center">Explore your personalized feed featuring brands and pieces that align with your unique style DNA.</p>
+            </div>
+            <div className="flex flex-col items-center">
+              <div className="bg-primary text-primary-foreground w-14 h-14 rounded-full flex items-center justify-center mb-4 text-xl font-medium">3</div>
+              <h3 className="text-lg font-medium mb-2">Connect With Style Soulmates</h3>
+              <p className="text-base text-muted-foreground text-center">Engage with brands that match your aesthetic. Save favorites and create collection boards that evolve with your style.</p>
+            </div>
+          </div>
+          <div className="text-center mt-8">
+            <Link href="/for-shoppers" className="bg-primary text-primary-foreground px-8 py-3 text-base rounded-full hover:opacity-90 transition-all duration-300 hover:scale-105 inline-flex items-center group">
+              Get Started Now
+              <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Early Access */}
+      <section className="py-20 bg-muted/30">
+        <div className="container">
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} viewport={{ once: true }} className="text-center mb-12">
+            <h2 className="text-4xl md:text-5xl font-serif font-light mb-4">Join the Fashion Revolution</h2>
+            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">Be among the first to experience the future of personalized fashion discovery. Sign up for early access and help shape the platform that will transform how you discover and connect with fashion.</p>
+          </motion.div>
+          <form className="max-w-xl mx-auto flex flex-col md:flex-row gap-4 justify-center">
+            <input type="email" placeholder="Enter your email" className="flex-1 px-6 py-3 rounded-full border border-border bg-background focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-base" required />
+            <button type="submit" className="bg-primary text-primary-foreground px-8 py-3 rounded-full hover:opacity-90 transition-all hover:scale-105 flex items-center justify-center group text-base font-medium">Get Early Access <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" /></button>
+          </form>
+          <ul className="flex flex-col md:flex-row gap-4 justify-center mt-6 text-muted-foreground text-sm">
+            <li>AI-powered style recommendations tailored just for you</li>
+            <li>Discover independent brands that match your aesthetic</li>
+            <li>Early adopter perks and exclusive limited collections</li>
+          </ul>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="py-20 bg-gradient-to-br from-primary/10 to-primary/5">
+        <div className="container">
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} viewport={{ once: true }} className="text-center mb-12">
+            <h2 className="text-4xl md:text-5xl font-serif font-light mb-4">Frequently Asked Questions</h2>
+            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">Everything you need to know about Wardro8e and how it works.</p>
+          </motion.div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="bg-card p-6 rounded-2xl shadow-md">
+              <h3 className="font-medium mb-2">How does Wardro8e&apos;s AI styling work?</h3>
+              <p className="text-sm text-muted-foreground">Our AI analyzes thousands of style attributes and your interactions with the platform to understand your unique preferences. It creates a personalized style profile that continually evolves as you engage with more content, ensuring increasingly accurate recommendations that reflect your personal taste.</p>
+            </div>
+            <div className="bg-card p-6 rounded-2xl shadow-md">
+              <h3 className="font-medium mb-2">Is Wardro8e free for shoppers?</h3>
+              <p className="text-sm text-muted-foreground">Yes, Wardro8e is completely free for shoppers. We believe in making personalized fashion discovery accessible to everyone. Our revenue comes from partnerships with brands and retailers featured on our platform.</p>
+            </div>
+            <div className="bg-card p-6 rounded-2xl shadow-md">
+              <h3 className="font-medium mb-2">How do brands join the Wardro8e platform?</h3>
+              <p className="text-sm text-muted-foreground">Brands can apply through our partner portal. After a brief review process to ensure quality and authenticity, approved brands can upload their collections and gain access to our analytics dashboard to connect with shoppers who truly appreciate their aesthetic.</p>
+            </div>
+            <div className="bg-card p-6 rounded-2xl shadow-md">
+              <h3 className="font-medium mb-2">Can I save items for later?</h3>
+              <p className="text-sm text-muted-foreground">Absolutely! You can save items to your personal collection boards, organized by categories or occasions of your choice. This helps our AI further understand your preferences while giving you easy access to your favorite discoveries.</p>
+            </div>
           </div>
         </div>
       </section>

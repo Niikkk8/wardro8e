@@ -22,29 +22,6 @@ import {
 } from "lucide-react";
 
 export default function ForBrandsPage() {
-    const benefits = [
-        {
-            icon: <Users className="w-8 h-8" />,
-            title: "Targeted Audience",
-            description: "Connect with shoppers who genuinely appreciate your design aesthetic and brand values.",
-        },
-        {
-            icon: <BarChart3 className="w-8 h-8" />,
-            title: "Advanced Analytics",
-            description: "Understand your audience with detailed insights, behavior patterns, and performance metrics.",
-        },
-        {
-            icon: <Zap className="w-8 h-8" />,
-            title: "Increased Visibility",
-            description: "Get discovered by style-conscious shoppers actively looking for your specific aesthetic.",
-        },
-        {
-            icon: <Shield className="w-8 h-8" />,
-            title: "Brand Protection",
-            description: "Maintain your brand integrity with our quality-focused platform and verification process.",
-        },
-    ];
-
     const metrics = [
         { value: "85%", label: "Higher Engagement", description: "vs. traditional platforms" },
         { value: "3x", label: "Conversion Rate", description: "average increase" },
@@ -168,84 +145,51 @@ export default function ForBrandsPage() {
                 </motion.div>
             </section>
 
-            {/* Main Benefits Section */}
-            <section className="py-24 bg-muted/30">
+            {/* Add dashboard mockup section */}
+            <section className="py-16 bg-muted/30">
                 <div className="container">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
-                        <motion.div
-                            initial={{ opacity: 0, x: -20 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.8 }}
-                            viewport={{ once: true }}
-                        >
-                            <div className="bg-card rounded-3xl p-10 border border-border">
-                                <div className="relative h-[400px] rounded-2xl overflow-hidden mb-8">
-                                    <Image
-                                        src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=600&fit=crop"
-                                        alt="Brand dashboard"
-                                        fill
-                                        className="object-cover"
-                                    />
-                                </div>
+                    <h2 className="text-3xl md:text-4xl font-serif font-light mb-8 text-center">Brand Dashboard</h2>
+                    <div className="flex flex-col md:flex-row gap-8 items-center justify-center">
+                        <div className="flex-1">
+                            <Image src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=600&fit=crop" alt="Dashboard" width={400} height={300} className="rounded-2xl object-cover shadow-lg" />
+                        </div>
+                        <div className="flex-1">
+                            <ul className="space-y-4">
+                                <li className="flex items-center"><BarChart3 className="w-6 h-6 text-primary mr-2" /> <span>Real-time analytics and insights</span></li>
+                                <li className="flex items-center"><Users className="w-6 h-6 text-primary mr-2" /> <span>Customer engagement up to 85%</span></li>
+                                <li className="flex items-center"><TrendingUp className="w-6 h-6 text-primary mr-2" /> <span>Average order value up 42%</span></li>
+                                <li className="flex items-center"><Shield className="w-6 h-6 text-primary mr-2" /> <span>Brand protection and quality verification</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-                                <h3 className="text-2xl font-medium mb-6">Real-Time Brand Analytics</h3>
-
-                                <div className="space-y-4">
-                                    <div className="flex justify-between items-center p-4 bg-muted rounded-lg">
-                                        <span>Customer Engagement</span>
-                                        <span className="font-medium text-primary">+85%</span>
-                                    </div>
-                                    <div className="flex justify-between items-center p-4 bg-muted rounded-lg">
-                                        <span>Average Order Value</span>
-                                        <span className="font-medium text-primary">+42%</span>
-                                    </div>
-                                    <div className="flex justify-between items-center p-4 bg-muted rounded-lg">
-                                        <span>Return Rate</span>
-                                        <span className="font-medium text-primary">-38%</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </motion.div>
-
-                        <motion.div
-                            initial={{ opacity: 0, x: 20 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.8 }}
-                            viewport={{ once: true }}
-                        >
-                            <h2 className="text-4xl md:text-5xl font-serif font-light mb-8">
-                                Grow Your Brand Intelligently
-                            </h2>
-
-                            <div className="space-y-8">
-                                {benefits.map((benefit, index) => (
-                                    <motion.div
-                                        key={index}
-                                        initial={{ opacity: 0, x: 20 }}
-                                        whileInView={{ opacity: 1, x: 0 }}
-                                        transition={{ duration: 0.5, delay: index * 0.1 }}
-                                        viewport={{ once: true }}
-                                        className="flex items-start space-x-6"
-                                    >
-                                        <div className="bg-primary/10 p-4 rounded-2xl text-primary mt-1 flex-shrink-0">
-                                            {benefit.icon}
-                                        </div>
-                                        <div>
-                                            <h3 className="text-2xl font-medium mb-3">{benefit.title}</h3>
-                                            <p className="text-lg text-muted-foreground leading-relaxed">{benefit.description}</p>
-                                        </div>
-                                    </motion.div>
-                                ))}
-                            </div>
-
-                            <Link
-                                href="/pricing"
-                                className="mt-12 bg-primary text-primary-foreground px-10 py-4 text-lg rounded-full hover:opacity-90 transition-all duration-300 hover:scale-105 inline-flex items-center group"
-                            >
-                                View Pricing Plans
-                                <ArrowRight className="ml-3 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                            </Link>
-                        </motion.div>
+            {/* Add concise benefits section */}
+            <section className="py-16 bg-gradient-to-br from-primary/10 to-primary/5">
+                <div className="container">
+                    <h2 className="text-3xl md:text-4xl font-serif font-light mb-8 text-center">Why Brands Choose Wardro8e</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="bg-card p-6 rounded-2xl shadow-md flex flex-col items-center">
+                            <Target className="w-8 h-8 text-primary mb-3" />
+                            <h3 className="font-medium mb-2">Targeted Audience</h3>
+                            <p className="text-sm text-muted-foreground text-center">Connect with shoppers who genuinely appreciate your design aesthetic and brand values.</p>
+                        </div>
+                        <div className="bg-card p-6 rounded-2xl shadow-md flex flex-col items-center">
+                            <BarChart3 className="w-8 h-8 text-primary mb-3" />
+                            <h3 className="font-medium mb-2">Advanced Analytics</h3>
+                            <p className="text-sm text-muted-foreground text-center">Understand your audience with detailed insights, behavior patterns, and performance metrics.</p>
+                        </div>
+                        <div className="bg-card p-6 rounded-2xl shadow-md flex flex-col items-center">
+                            <Zap className="w-8 h-8 text-primary mb-3" />
+                            <h3 className="font-medium mb-2">Increased Visibility</h3>
+                            <p className="text-sm text-muted-foreground text-center">Get discovered by style-conscious shoppers actively looking for your specific aesthetic.</p>
+                        </div>
+                        <div className="bg-card p-6 rounded-2xl shadow-md flex flex-col items-center">
+                            <Shield className="w-8 h-8 text-primary mb-3" />
+                            <h3 className="font-medium mb-2">Brand Protection</h3>
+                            <p className="text-sm text-muted-foreground text-center">Maintain your brand integrity with our quality-focused platform and verification process.</p>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -411,6 +355,14 @@ export default function ForBrandsPage() {
                             </motion.div>
                         ))}
                     </div>
+                </div>
+            </section>
+
+            {/* Add join CTA section */}
+            <section className="py-16 bg-muted/30">
+                <div className="container text-center">
+                    <h2 className="text-3xl md:text-4xl font-serif font-light mb-6">Ready to Grow Your Brand?</h2>
+                    <Link href="/contact" className="bg-primary text-primary-foreground px-8 py-3 text-base rounded-full hover:opacity-90 transition-all duration-300 hover:scale-105 inline-flex items-center group">Join Wardro8e <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" /></Link>
                 </div>
             </section>
 

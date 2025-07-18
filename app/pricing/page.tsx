@@ -12,11 +12,10 @@ import {
     Users,
     BarChart3,
     Package,
-    Headphones,
-    Globe,
-    Sparkles,
     Award,
-    DollarSign
+    DollarSign,
+    Sparkles,
+    Globe
 } from "lucide-react";
 
 export default function PricingPage() {
@@ -433,8 +432,8 @@ export default function PricingPage() {
                             30-Day Money-Back Guarantee
                         </h2>
                         <p className="text-xl text-muted-foreground leading-relaxed">
-                            We're confident you'll love Wardro8e. If you're not completely satisfied within
-                            your first 30 days, we'll give you a full refund. No questions asked.
+                            We&apos;re confident you&apos;ll love Wardro8e. If you&apos;re not completely satisfied within
+                            your first 30 days, we&apos;ll give you a full refund. No questions asked.
                         </p>
                     </motion.div>
                 </div>
