@@ -398,147 +398,106 @@ export default function ForShoppersPage() {
                 </div>
             </section>
 
-            {/* Style Gallery */}
-            <section className="py-24 bg-muted/30">
-                <div className="container">
-                    <motion.h2
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8 }}
-                        viewport={{ once: true }}
-                        className="text-4xl md:text-5xl font-serif font-light text-center mb-16"
-                    >
-                        Find Your Style Tribe
-                    </motion.h2>
+            {/* Interactive Style Quiz - New Section */}
+            <section className="py-24 bg-white dark:bg-muted/20">
+                <div className="container max-w-2xl mx-auto text-center">
+                    <h2 className="text-4xl md:text-5xl font-serif font-light mb-8">What’s Your Style DNA?</h2>
+                    <p className="text-lg text-muted-foreground mb-8">Take our quick, fun quiz to unlock your personalized style profile and discover brands that truly get you.</p>
+                    <div className="flex flex-col items-center">
+                        <img src="https://cdn.pixabay.com/photo/2017/01/31/13/14/question-mark-2026615_1280.png" alt="Quiz" width={80} height={80} className="w-20 h-20 mb-4" />
+                        <a href="/" className="bg-primary text-primary-foreground px-8 py-3 text-base rounded-full hover:opacity-90 transition-all duration-300 hover:scale-105 inline-flex items-center group">Start the Quiz <svg className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7" /></svg></a>
+                    </div>
+                </div>
+            </section>
 
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {/* Community Highlights - New Section */}
+            <section className="py-24 bg-gradient-to-br from-primary/10 to-primary/5">
+                <div className="container">
+                    <h2 className="text-4xl md:text-5xl font-serif font-light text-center mb-12">Wardro8e Community</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
                         {[
-                            { style: "Minimalist", count: "2.3K" },
-                            { style: "Bohemian", count: "1.8K" },
-                            { style: "Streetwear", count: "3.1K" },
-                            { style: "Vintage", count: "1.5K" },
-                            { style: "Sustainable", count: "2.7K" },
-                            { style: "Luxury", count: "1.2K" },
-                            { style: "Casual Chic", count: "2.9K" },
-                            { style: "Avant-garde", count: "980" },
-                        ].map((item, index) => (
-                            <motion.div
-                                key={index}
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                whileInView={{ opacity: 1, scale: 1 }}
-                                transition={{ duration: 0.5, delay: index * 0.05 }}
-                                viewport={{ once: true }}
-                                className="bg-card p-8 rounded-2xl border border-border hover:border-primary transition-all duration-300 text-center group"
-                            >
-                                <h3 className="text-xl font-medium mb-2">{item.style}</h3>
-                                <p className="text-muted-foreground">{item.count} brands</p>
-                                <div className="mt-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <Link href="#" className="text-primary font-medium">
-                                        Explore →
-                                    </Link>
-                                </div>
-                            </motion.div>
-                        ))}
-                    </div>
-                </div>
-            </section>
-
-            {/* Redesigned Style Quiz section */}
-            <section className="py-16 bg-muted/30">
-                <div className="container flex flex-col md:flex-row items-center gap-10">
-                    <div className="flex-1 flex justify-center mb-8 md:mb-0">
-                        <div className="w-full max-w-xs md:max-w-sm rounded-2xl overflow-hidden shadow-lg bg-white flex flex-col items-center p-6">
-                            <Image src="https://cdn.pixabay.com/photo/2017/01/31/13/14/question-mark-2026615_1280.png" alt="Quiz illustration" width={80} height={80} className="w-20 h-20 mb-4" />
-                            <div className="w-full mb-2">
-                                <div className="h-2 bg-primary/20 rounded-full overflow-hidden">
-                                    <div className="h-2 bg-primary rounded-full w-1/3 transition-all" />
-                                </div>
-                            </div>
-                            <div className="w-full text-center mb-4">
-                                <span className="font-medium">What colors do you wear most often?</span>
-                                <div className="flex justify-center gap-2 mt-2">
-                                    <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs">Neutrals</span>
-                                    <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs">Brights</span>
-                                    <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs">Pastels</span>
-                                </div>
-                            </div>
-                            <button className="bg-primary text-primary-foreground px-6 py-2 rounded-full mt-2 hover:opacity-90 transition-all text-sm font-medium">Next</button>
-                        </div>
-                    </div>
-                    <div className="flex-1">
-                        <div className="bg-card p-8 rounded-2xl shadow-md flex flex-col items-start">
-                            <h2 className="text-2xl md:text-3xl font-serif font-light mb-4">Start With a Style Quiz</h2>
-                            <p className="text-lg text-muted-foreground mb-6">Take our interactive quiz to help our AI understand your unique preferences and inspirations. Get your personalized style DNA and unlock a world of curated fashion.</p>
-                            <Link href="/" className="bg-primary text-primary-foreground px-8 py-3 text-base rounded-full hover:opacity-90 transition-all duration-300 hover:scale-105 inline-flex items-center group">Try the Style Quiz <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" /></Link>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            {/* Redesigned benefits as horizontal scrollable carousel on mobile, staggered cards on desktop */}
-            <section className="py-16 bg-gradient-to-br from-primary/10 to-primary/5">
-                <div className="container">
-                    <h2 className="text-3xl md:text-4xl font-serif font-light mb-8 text-center">Why Shoppers Love Wardro8e</h2>
-                    <div className="flex gap-6 overflow-x-auto pb-4 md:grid md:grid-cols-2 md:gap-8 md:overflow-x-visible">
-                        {[{icon:<Sparkles className="w-8 h-8 text-primary mb-3" />,title:'Personalized Discovery',desc:'Find pieces that match your unique style preferences without endless scrolling.'},{icon:<Heart className="w-8 h-8 text-primary mb-3" />,title:'Discover Unique Brands',desc:'Connect with independent designers and brands that align with your aesthetic.'},{icon:<TrendingUp className="w-8 h-8 text-primary mb-3" />,title:'Style Evolution',desc:'Our AI learns and evolves with your preferences to refine your personal style.'},{icon:<Shield className="w-8 h-8 text-primary mb-3" />,title:'Quality Assured',desc:'Every brand is carefully vetted for quality, sustainability, and authentic design philosophy.'}].map((b,i)=>(
-                            <div key={i} className="bg-card p-6 rounded-2xl shadow-md flex flex-col items-center min-w-[220px] md:min-w-0 md:w-full">
-                                {b.icon}
-                                <h3 className="font-medium mb-2 text-center">{b.title}</h3>
-                                <p className="text-sm text-muted-foreground text-center">{b.desc}</p>
+                            {
+                                name: 'Sarah',
+                                img: 'https://randomuser.me/api/portraits/women/65.jpg',
+                                quote: 'I finally found brands that match my vibe. The tribe feature is genius!'
+                            },
+                            {
+                                name: 'Emeka',
+                                img: 'https://randomuser.me/api/portraits/men/41.jpg',
+                                quote: 'The style quiz nailed my taste. Shopping feels personal now.'
+                            },
+                            {
+                                name: 'Lina',
+                                img: 'https://randomuser.me/api/portraits/women/22.jpg',
+                                quote: 'Love the community! I’ve discovered so many new looks and friends.'
+                            },
+                        ].map((user, i) => (
+                            <div key={i} className="bg-card p-8 rounded-3xl shadow-xl flex flex-col items-center text-center">
+                                <img src={user.img} alt={user.name} width={64} height={64} className="rounded-full mb-4 object-cover w-16 h-16 border-4 border-primary/20" />
+                                <div className="font-serif text-lg font-medium mb-2">{user.name}</div>
+                                <div className="italic text-muted-foreground text-base">“{user.quote}”</div>
                             </div>
                         ))}
                     </div>
                 </div>
             </section>
 
-            {/* Redesigned gallery as masonry grid with hover overlays and favorite icons */}
-            <section className="py-16 bg-muted/30">
-                <div className="container">
-                    <h2 className="text-3xl md:text-4xl font-serif font-light mb-8 text-center">Shop the Looks</h2>
-                    <div className="columns-1 md:columns-3 gap-4 [column-fill:_balance]"><div className="flex flex-col gap-4">
-                        {["https://images.unsplash.com/photo-1487222477894-8943e31ef7b2?w=600&h=800&fit=crop","https://images.unsplash.com/photo-1479064555552-3ef4979f8908?w=600&h=800&fit=crop","https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=600&h=800&fit=crop","https://images.unsplash.com/photo-1517841905240-472988babdf9?w=600&h=800&fit=crop"].map((src,i)=>(
-                            <div key={i} className="relative rounded-2xl overflow-hidden shadow-xl group mb-4">
-                                <Image src={src} alt={`Look ${i+1}`} width={600} height={800} className="object-cover w-full h-[300px]" />
-                                <button className="absolute top-3 right-3 bg-white/80 rounded-full p-2 shadow hover:bg-primary/80 hover:text-white transition-all"><svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor' className='w-5 h-5'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 15l7-7 7 7' /></svg></button>
-                                <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white font-medium text-lg">View Look</div>
-                            </div>
-                        ))}</div></div>
-                </div>
-            </section>
-
-            {/* Add bold, gradient CTA */}
-            <section className="py-16 bg-gradient-to-r from-primary to-primary/70 text-center">
-                <div className="container">
-                    <h2 className="text-3xl md:text-4xl font-serif font-light mb-6 text-white">Ready to Discover Your Style?</h2>
-                    <Link href="/" className="bg-white text-primary px-10 py-4 text-lg rounded-full hover:opacity-90 transition-all duration-300 hover:scale-105 inline-flex items-center group font-semibold shadow-lg">Create Your Style Profile <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" /></Link>
-                </div>
-            </section>
-
-            {/* Find Your Style Tribe section (bold, editorial) */}
-            <section className="py-16 bg-gradient-to-br from-primary/10 to-primary/5">
-                <div className="container flex flex-col md:flex-row items-center gap-10">
-                    <div className="flex-1 flex flex-col items-center md:items-start">
-                        <Image src="https://cdn.pixabay.com/photo/2017/01/31/13/14/question-mark-2026615_1280.png" alt="Community illustration" width={128} height={128} className="w-32 h-32 mb-6" />
-                        <h2 className="text-3xl md:text-4xl font-serif font-light mb-4 text-center md:text-left">Find Your Style Tribe</h2>
-                        <p className="text-lg text-muted-foreground mb-6 text-center md:text-left">Join a vibrant community of fashion lovers, share your looks, and get inspired by others on their style journey. Connect, learn, and grow your style with us.</p>
-                        <Link href="/" className="bg-primary text-primary-foreground px-8 py-3 text-base rounded-full hover:opacity-90 transition-all duration-300 hover:scale-105 inline-flex items-center group">Join the Community <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" /></Link>
-                    </div>
-                    <div className="flex-1">
-                        {/* Testimonials carousel */}
-                        <div className="bg-card p-8 rounded-2xl shadow-xl flex flex-col gap-6">
-                            <h3 className="text-xl font-medium mb-2">What Our Members Say</h3>
-                            <div className="flex gap-4 overflow-x-auto pb-2">
-                                {[{name:'Sarah Chen',role:'Fashion Enthusiast',content:'Finally found brands that actually match my minimalist aesthetic. No more endless scrolling through items that don\'t speak to me!',img:'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop'},{name:'Emma Rodriguez',role:'Style Blogger',content:'The AI recommendations are spot-on. It\'s like having a personal stylist who really gets me and my evolving style.',img:'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop'},{name:'Lisa Thompson',role:'Sustainable Shopper',content:'Love discovering independent brands that align with my values. The quality verification gives me confidence in every purchase.',img:'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&h=100&fit=crop'}].map((t,i)=>(
-                                    <div key={i} className="bg-muted p-6 rounded-xl min-w-[220px] flex flex-col items-center shadow-md">
-                                        <Image src={t.img} alt={t.name} width={48} height={48} className="rounded-full w-12 h-12 mb-2 object-cover" />
-                                        <div className="font-medium mb-1">{t.name}</div>
-                                        <div className="text-xs text-muted-foreground mb-2">{t.role}</div>
-                                        <div className="text-sm text-center">“{t.content}”</div>
+            {/* Wardro8e Moments - Editorial Photo Grid Section */}
+            <section className="py-24 bg-gradient-to-br from-primary/5 to-muted/30 relative overflow-hidden">
+                <div className="absolute inset-0 pointer-events-none" style={{background: 'radial-gradient(ellipse at 60% 40%, rgba(56,189,248,0.08) 0%, transparent 70%)'}} />
+                <div className="container relative z-10">
+                    <h2 className="text-4xl md:text-5xl font-serif font-light text-center mb-12">Wardro8e Moments</h2>
+                    <p className="text-xl text-muted-foreground text-center mb-16 max-w-2xl mx-auto">A celebration of confidence, joy, and the beauty of self-expression. Every style tells a story—here are just a few.</p>
+                    <div className="columns-1 sm:columns-2 md:columns-3 gap-6 [column-fill:_balance]">
+                        {[
+                            {
+                                img: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=600&h=800&fit=crop',
+                                caption: '“I feel most myself in colors that make me smile.”',
+                            },
+                            {
+                                img: 'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=600&h=800&fit=crop',
+                                caption: '“Style is my daily act of self-love.”',
+                            },
+                            {
+                                img: 'https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?w=600&h=800&fit=crop',
+                                caption: '“Confidence is the best accessory.”',
+                            },
+                            {
+                                img: 'https://images.unsplash.com/photo-1465101046530-73398c7f28ca?w=600&h=800&fit=crop',
+                                caption: '“Vintage finds, modern dreams.”',
+                            },
+                            {
+                                img: 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=600&h=800&fit=crop',
+                                caption: '“Luxury is comfort in your own skin.”',
+                            },
+                            {
+                                img: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=600&h=800&fit=crop',
+                                caption: '“Street style, city soul.”',
+                            },
+                        ].map((item, i) => (
+                            <div key={i} className="mb-6 break-inside-avoid animate-fadeInUp">
+                                <div className="relative rounded-3xl overflow-hidden shadow-xl group">
+                                    <img src={item.img} alt={item.caption} width={400} height={540} className="object-cover w-full h-[420px] group-hover:scale-105 transition-transform duration-700" />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
+                                    <div className="absolute bottom-6 left-6 right-6 text-white drop-shadow-lg text-lg font-serif italic opacity-90">
+                                        {item.caption}
                                     </div>
-                                ))}
+                                </div>
                             </div>
-                        </div>
+                        ))}
                     </div>
+                    <div className="text-center mt-16">
+                        <a href="/contact" className="inline-block bg-primary text-primary-foreground px-10 py-4 text-lg rounded-full hover:opacity-90 transition-all duration-300 hover:scale-105 shadow-lg">Share Your Moment</a>
+                    </div>
+                </div>
+            </section>
+
+            {/* Call to Action - Start Your Journey */}
+            <section className="py-20 bg-primary/10">
+                <div className="container text-center">
+                    <h2 className="text-3xl md:text-4xl font-serif font-light mb-4">Ready to Find Your People?</h2>
+                    <p className="text-lg text-muted-foreground mb-8">Wardro8e is more than a platform—it’s a movement. Join us and make your mark on the future of fashion.</p>
+                    <a href="/" className="inline-block bg-primary text-primary-foreground px-10 py-4 text-lg rounded-full hover:opacity-90 transition-all duration-300 hover:scale-105 shadow-lg">Get Started</a>
                 </div>
             </section>
         </div>
