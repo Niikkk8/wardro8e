@@ -3,7 +3,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { Award, Sparkles, Users, Shield, Target, Globe, Heart } from "lucide-react";
+import { Award, Sparkles, Users, Shield, Globe, Heart } from "lucide-react";
 
 export default function AboutPage() {
     const values = [
@@ -213,7 +213,13 @@ export default function AboutPage() {
                         ].map((item, i) => (
                             <div key={i} className="mb-16 flex items-center group">
                                 <div className="flex-shrink-0 w-24 h-24 rounded-full overflow-hidden border-4 border-primary/30 shadow-lg mr-8">
-                                    <img src={item.img} alt={item.title} className="object-cover w-full h-full" />
+                                    <Image
+                                        src={item.img}
+                                        alt={item.title}
+                                        width={400}
+                                        height={400}
+                                        className="object-cover w-full h-full"
+                                    />
                                 </div>
                                 <div>
                                     <div className="text-primary font-bold text-lg mb-1">{item.year}</div>
@@ -258,7 +264,13 @@ export default function AboutPage() {
                             },
                         ].map((member, i) => (
                             <div key={i} className="bg-card p-8 rounded-3xl shadow-xl flex flex-col items-center text-center">
-                                <img src={member.img} alt={member.name} width={96} height={96} className="rounded-full mb-4 object-cover w-24 h-24 border-4 border-primary/20" />
+                                <Image
+                                    src={member.img}
+                                    alt={member.name}
+                                    width={96}
+                                    height={96}
+                                    className="rounded-full mb-4 object-cover w-24 h-24 border-4 border-primary/20"
+                                />
                                 <div className="font-serif text-xl font-medium mb-1">{member.name}</div>
                                 <div className="text-primary font-semibold mb-2">{member.role}</div>
                                 <div className="text-muted-foreground text-sm">{member.bio}</div>
@@ -274,8 +286,20 @@ export default function AboutPage() {
                     <h2 className="text-4xl md:text-5xl font-serif font-light mb-8">Our Manifesto</h2>
                     <blockquote className="text-xl md:text-2xl italic text-muted-foreground mb-8">“Fashion is not about following trends. It’s about discovering yourself, celebrating difference, and connecting with a world of creative possibility.”</blockquote>
                     <div className="flex flex-col md:flex-row items-center justify-center gap-8">
-                        <img src="https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=600&h=400&fit=crop" alt="Creative fashion" width={300} height={200} className="rounded-2xl shadow-lg object-cover" />
-                        <img src="https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?w=600&h=400&fit=crop" alt="Diverse style" width={300} height={200} className="rounded-2xl shadow-lg object-cover" />
+                        <Image
+                            src="https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=600&h=400&fit=crop"
+                            alt="Creative fashion"
+                            width={300}
+                            height={200}
+                            className="rounded-2xl shadow-lg object-cover"
+                        />
+                        <Image
+                            src="https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?w=600&h=400&fit=crop"
+                            alt="Diverse style"
+                            width={300}
+                            height={200}
+                            className="rounded-2xl shadow-lg object-cover"
+                        />
                     </div>
                 </div>
             </section>

@@ -404,8 +404,8 @@ export default function ForShoppersPage() {
                     <h2 className="text-4xl md:text-5xl font-serif font-light mb-8">What’s Your Style DNA?</h2>
                     <p className="text-lg text-muted-foreground mb-8">Take our quick, fun quiz to unlock your personalized style profile and discover brands that truly get you.</p>
                     <div className="flex flex-col items-center">
-                        <img src="https://cdn.pixabay.com/photo/2017/01/31/13/14/question-mark-2026615_1280.png" alt="Quiz" width={80} height={80} className="w-20 h-20 mb-4" />
-                        <a href="/" className="bg-primary text-primary-foreground px-8 py-3 text-base rounded-full hover:opacity-90 transition-all duration-300 hover:scale-105 inline-flex items-center group">Start the Quiz <svg className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7" /></svg></a>
+                        <Image src="https://cdn.pixabay.com/photo/2017/01/31/13/14/question-mark-2026615_1280.png" alt="Quiz" width={80} height={80} className="w-20 h-20 mb-4" />
+                        <Link href="/" className="bg-primary text-primary-foreground px-8 py-3 text-base rounded-full hover:opacity-90 transition-all duration-300 hover:scale-105 inline-flex items-center group">Start the Quiz <svg className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7" /></svg></Link>
                     </div>
                 </div>
             </section>
@@ -433,7 +433,7 @@ export default function ForShoppersPage() {
                             },
                         ].map((user, i) => (
                             <div key={i} className="bg-card p-8 rounded-3xl shadow-xl flex flex-col items-center text-center">
-                                <img src={user.img} alt={user.name} width={64} height={64} className="rounded-full mb-4 object-cover w-16 h-16 border-4 border-primary/20" />
+                                <Image src={user.img} alt={user.name} width={64} height={64} className="rounded-full mb-4 object-cover w-16 h-16 border-4 border-primary/20" />
                                 <div className="font-serif text-lg font-medium mb-2">{user.name}</div>
                                 <div className="italic text-muted-foreground text-base">“{user.quote}”</div>
                             </div>
@@ -477,7 +477,7 @@ export default function ForShoppersPage() {
                         ].map((item, i) => (
                             <div key={i} className="mb-6 break-inside-avoid animate-fadeInUp">
                                 <div className="relative rounded-3xl overflow-hidden shadow-xl group">
-                                    <img src={item.img} alt={item.caption} width={400} height={540} className="object-cover w-full h-[420px] group-hover:scale-105 transition-transform duration-700" />
+                                    <Image src={item.img} alt={item.caption} width={400} height={540} className="object-cover w-full h-[420px] group-hover:scale-105 transition-transform duration-700" />
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
                                     <div className="absolute bottom-6 left-6 right-6 text-white drop-shadow-lg text-lg font-serif italic opacity-90">
                                         {item.caption}
@@ -487,7 +487,7 @@ export default function ForShoppersPage() {
                         ))}
                     </div>
                     <div className="text-center mt-16">
-                        <a href="/contact" className="inline-block bg-primary text-primary-foreground px-10 py-4 text-lg rounded-full hover:opacity-90 transition-all duration-300 hover:scale-105 shadow-lg">Share Your Moment</a>
+                        <Link href="/contact" className="inline-block bg-primary text-primary-foreground px-10 py-4 text-lg rounded-full hover:opacity-90 transition-all duration-300 hover:scale-105 shadow-lg">Share Your Moment</Link>
                     </div>
                 </div>
             </section>
@@ -497,7 +497,7 @@ export default function ForShoppersPage() {
                 <div className="container text-center">
                     <h2 className="text-3xl md:text-4xl font-serif font-light mb-4">Ready to Find Your People?</h2>
                     <p className="text-lg text-muted-foreground mb-8">Wardro8e is more than a platform—it’s a movement. Join us and make your mark on the future of fashion.</p>
-                    <a href="/" className="inline-block bg-primary text-primary-foreground px-10 py-4 text-lg rounded-full hover:opacity-90 transition-all duration-300 hover:scale-105 shadow-lg">Get Started</a>
+                    <Link href="/" className="inline-block bg-primary text-primary-foreground px-10 py-4 text-lg rounded-full hover:opacity-90 transition-all duration-300 hover:scale-105 shadow-lg">Get Started</Link>
                 </div>
             </section>
         </div>

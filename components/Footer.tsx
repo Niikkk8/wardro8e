@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Link from "next/link";
 import {
     Instagram,
@@ -16,8 +16,6 @@ import { useTheme } from "./ThemeProvider";
 const Footer = () => {
     const currentYear = new Date().getFullYear();
     const { theme } = useTheme();
-    const [email, setEmail] = useState("");
-    const [isSubscribed, setIsSubscribed] = useState(false);
 
     const footerLinks = {
         Platform: [
