@@ -52,10 +52,14 @@ const Navbar = () => {
                 }`}
         >
             <div className="container flex items-center justify-between">
-                <Link href="/" className="text-2xl font-light flex items-center">
-                    <span className="font-serif tracking-wide">wardro</span>
-                    <span className="text-primary">8</span>
-                    <span className="font-serif tracking-wide">e</span>
+                <Link
+                    href="/"
+                    className={`text-2xl font-medium font-serif flex items-end transform transition-transform duration-300 hover:scale-105 ${theme === "dark" ? "text-white" : "text-gray-900"
+                        }`}
+                >
+                    <span className="">wardro</span>
+                    <span className="text-teal-500">8</span>
+                    <span className="">e</span>
                 </Link>
 
                 {/* Desktop Navigation */}
