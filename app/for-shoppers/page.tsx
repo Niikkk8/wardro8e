@@ -404,7 +404,7 @@ export default function ForShoppersPage() {
                     <h2 className="text-4xl md:text-5xl font-serif font-light mb-8">What’s Your Style DNA?</h2>
                     <p className="text-lg text-muted-foreground mb-8">Take our quick, fun quiz to unlock your personalized style profile and discover brands that truly get you.</p>
                     <div className="flex flex-col items-center">
-                        <Image src="https://cdn.pixabay.com/photo/2017/01/31/13/14/question-mark-2026615_1280.png" alt="Quiz" width={80} height={80} className="w-20 h-20 mb-4" />
+                        <Image src="https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=80&h=80&fit=crop" alt="Quiz" width={80} height={80} className="w-20 h-20 mb-4 rounded-full" />
                         <Link href="/" className="bg-primary text-primary-foreground px-8 py-3 text-base rounded-full hover:opacity-90 transition-all duration-300 hover:scale-105 inline-flex items-center group">Start the Quiz <svg className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7" /></svg></Link>
                     </div>
                 </div>

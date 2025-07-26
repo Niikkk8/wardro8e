@@ -64,14 +64,6 @@
   - Themed footer with logo, description, navigation links, and social icon (Instagram).
   - Responsive, with copyright.
 
-- **Button.tsx**
-  - Themed button supporting `primary`, `secondary`, and `outline` variants.
-  - Sizes: `sm`, `md`, `lg`.
-  - Uses theme context for color logic.
-
-- **Input.tsx**
-  - Themed input with label support, responsive to dark/light mode.
-
 - **ThemeContext.tsx**
   - Provides `theme` and `toggleTheme` via React context.
   - Applies `.dark` class to `<body>` for dark mode.

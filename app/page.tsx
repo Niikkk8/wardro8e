@@ -58,12 +58,12 @@ export default function HomePage() {
               <span className="text-sm font-medium text-primary">AI-Powered Fashion Discovery</span>
             </div>
 
-            <h1 className="text-6xl md:text-7xl lg:text-8xl font-serif font-light mb-8 leading-tight">
+            <h1 className="text-5xl sm:text-6xl md:text-7xl font-serif mb-8">
               Where AI Meets
               <span className="block text-primary mt-2">Personal Style</span>
             </h1>
 
-            <p className="text-xl md:text-2xl text-muted-foreground mb-10 leading-relaxed">
+            <p className="text-base sm:text-xl text-muted-foreground mb-10 leading-relaxed">
               Discover fashion that speaks to your soul. Our AI-powered platform creates
               meaningful connections between you and brands that truly understand your
               individual style DNA.
@@ -72,14 +72,14 @@ export default function HomePage() {
             <div className="flex flex-col sm:flex-row gap-5 mb-16">
               <Link
                 href="/for-shoppers"
-                className="bg-primary text-primary-foreground px-10 py-4 text-lg rounded-full hover:opacity-90 transition-all duration-300 hover:scale-105 flex items-center justify-center group"
+                className="bg-primary text-primary-foreground px-12 py-4 text-lg rounded-full hover:opacity-90 transition-all duration-300 hover:scale-105 flex items-center justify-center group"
               >
                 Start Shopping
                 <ArrowRight className="ml-3 w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
               <Link
                 href="/for-brands"
-                className="border-2 border-border text-foreground px-10 py-4 text-lg rounded-full hover:border-primary hover:text-primary transition-all duration-300"
+                className="border-2 border-border text-foreground px-12 py-4 text-lg rounded-full hover:border-primary hover:text-primary transition-all duration-300"
               >
                 I&apos;m a Brand
               </Link>
@@ -93,8 +93,8 @@ export default function HomePage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: 0.2 + index * 0.1 }}
                 >
-                  <p className="text-4xl font-light">{stat.value}</p>
-                  <p className="text-base font-medium">{stat.label}</p>
+                  <p className="text-2xl sm:text-4xl font-light">{stat.value}</p>
+                  <p className="text-base sm:text-lg font-medium">{stat.label}</p>
                   <p className="text-sm text-muted-foreground">{stat.description}</p>
                 </motion.div>
               ))}
@@ -107,9 +107,9 @@ export default function HomePage() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="relative"
           >
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-2 sm:gap-4">
               <div className="space-y-4">
-                <div className="relative h-[320px] rounded-3xl overflow-hidden shadow-2xl">
+                <div className="relative h-[240px] sm:h-[320px] rounded-3xl overflow-hidden shadow-2xl">
                   <Image
                     src="https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=400&h=600&fit=crop"
                     alt="Fashion 1"
@@ -117,7 +117,7 @@ export default function HomePage() {
                     className="object-cover hover:scale-105 transition-transform duration-700"
                   />
                 </div>
-                <div className="relative h-[200px] rounded-3xl overflow-hidden shadow-2xl">
+                <div className="relative h-[160px] sm:h-[200px] rounded-3xl overflow-hidden shadow-2xl">
                   <Image
                     src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=400&h=300&fit=crop"
                     alt="Fashion 2"
@@ -127,7 +127,7 @@ export default function HomePage() {
                 </div>
               </div>
               <div className="space-y-6 mt-12">
-                <div className="relative h-[200px] rounded-3xl overflow-hidden shadow-2xl">
+                <div className="relative h-[160px] sm:h-[200px] rounded-3xl overflow-hidden shadow-2xl">
                   <Image
                     src="https://images.unsplash.com/photo-1434389677669-e08b4cac3105?w=400&h=300&fit=crop"
                     alt="Fashion 3"
@@ -135,7 +135,7 @@ export default function HomePage() {
                     className="object-cover hover:scale-105 transition-transform duration-700"
                   />
                 </div>
-                <div className="relative h-[320px] rounded-3xl overflow-hidden shadow-2xl">
+                <div className="relative h-[240px] sm:h-[320px] rounded-3xl overflow-hidden shadow-2xl">
                   <Image
                     src="https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=400&h=600&fit=crop"
                     alt="Fashion 4"
@@ -146,7 +146,7 @@ export default function HomePage() {
               </div>
             </div>
             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-background rounded-full p-4 shadow-2xl">
-              <Sparkles className="w-10 h-10 text-primary animate-pulse" />
+              <Sparkles className="w-6 sm:w-10 h-6 sm:h-10 text-primary animate-pulse" />
             </div>
           </motion.div>
         </div>
@@ -219,7 +219,11 @@ export default function HomePage() {
                 className="relative h-[500px] rounded-3xl overflow-hidden shadow-xl group"
               >
                 <Image
-                  src={`https://images.unsplash.com/photo-15${i+3}9109136881-3be0616acf4b?w=600&h=800&fit=crop`}
+                  src={[
+                    "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=600&h=800&fit=crop",
+                    "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=600&h=800&fit=crop",
+                    "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=600&h=800&fit=crop"
+                  ][i-1]}
                   alt={`Trending fashion ${i}`}
                   fill
                   className="object-cover group-hover:scale-110 transition-transform duration-700"
@@ -323,20 +327,20 @@ export default function HomePage() {
           </motion.div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="bg-card p-6 rounded-2xl shadow-md">
-              <h3 className="font-medium mb-2">How does Wardro8e&apos;s AI styling work?</h3>
-              <p className="text-sm text-muted-foreground">Our AI analyzes thousands of style attributes and your interactions with the platform to understand your unique preferences. It creates a personalized style profile that continually evolves as you engage with more content, ensuring increasingly accurate recommendations that reflect your personal taste.</p>
+              <h3 className="text-xl font-medium mb-2">How does Wardro8e&apos;s AI styling work?</h3>
+              <p className="text-base text-muted-foreground">Our AI analyzes thousands of style attributes and your interactions with the platform to understand your unique preferences. It creates a personalized style profile that continually evolves as you engage with more content, ensuring increasingly accurate recommendations that reflect your personal taste.</p>
             </div>
             <div className="bg-card p-6 rounded-2xl shadow-md">
-              <h3 className="font-medium mb-2">Is Wardro8e free for shoppers?</h3>
-              <p className="text-sm text-muted-foreground">Yes, Wardro8e is completely free for shoppers. We believe in making personalized fashion discovery accessible to everyone. Our revenue comes from partnerships with brands and retailers featured on our platform.</p>
+              <h3 className="text-xl font-medium mb-2">Is Wardro8e free for shoppers?</h3>
+              <p className="text-base text-muted-foreground">Yes, Wardro8e is completely free for shoppers. We believe in making personalized fashion discovery accessible to everyone. Our revenue comes from partnerships with brands and retailers featured on our platform.</p>
             </div>
             <div className="bg-card p-6 rounded-2xl shadow-md">
-              <h3 className="font-medium mb-2">How do brands join the Wardro8e platform?</h3>
-              <p className="text-sm text-muted-foreground">Brands can apply through our partner portal. After a brief review process to ensure quality and authenticity, approved brands can upload their collections and gain access to our analytics dashboard to connect with shoppers who truly appreciate their aesthetic.</p>
+              <h3 className="text-xl font-medium mb-2">How do brands join the Wardro8e platform?</h3>
+              <p className="text-base text-muted-foreground">Brands can apply through our partner portal. After a brief review process to ensure quality and authenticity, approved brands can upload their collections and gain access to our analytics dashboard to connect with shoppers who truly appreciate their aesthetic.</p>
             </div>
             <div className="bg-card p-6 rounded-2xl shadow-md">
-              <h3 className="font-medium mb-2">Can I save items for later?</h3>
-              <p className="text-sm text-muted-foreground">Absolutely! You can save items to your personal collection boards, organized by categories or occasions of your choice. This helps our AI further understand your preferences while giving you easy access to your favorite discoveries.</p>
+              <h3 className="text-xl font-medium mb-2">Can I save items for later?</h3>
+              <p className="text-base text-muted-foreground">Absolutely! You can save items to your personal collection boards, organized by categories or occasions of your choice. This helps our AI further understand your preferences while giving you easy access to your favorite discoveries.</p>
             </div>
           </div>
         </div>
