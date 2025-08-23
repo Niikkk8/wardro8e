@@ -1,29 +1,60 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
-import { pendingBrandSignups } from "@/lib/pending-otp";
+import RateLimiter from "@/lib/rate-limiter";
+
+// Timing-safe string comparison to prevent timing attacks
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) {
+    return false;
+  }
+  
+  let result = 0;
+  for (let i = 0; i < a.length; i++) {
+    result |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  
+  return result === 0;
+}
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, otp } = await req.json();
-    if (!email?.trim() || !otp?.trim()) {
-      return NextResponse.json({ message: "Email and OTP are required" }, { status: 400 });
+    // Rate limiting: 10 verification attempts per 15 minutes per IP
+    const clientId = RateLimiter.getClientIdentifier(req);
+    const rateLimitResult = await RateLimiter.isAllowed(`verify:${clientId}`, 10, 15 * 60 * 1000);
+    
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json(
+        { message: "Too many verification attempts. Please try again later." },
+        { status: 429 }
+      );
     }
+
+    const { email, otp, brandName, brandLegalName, password, storedOtp, expiresAt } = await req.json();
+    
+    if (!email?.trim() || !otp?.trim() || !brandName?.trim() || !brandLegalName?.trim() || !password || !storedOtp || !expiresAt) {
+      return NextResponse.json({ message: "All verification data is required" }, { status: 400 });
+    }
+
     const normalizedEmail = email.trim().toLowerCase();
-    const pending = pendingBrandSignups.get(normalizedEmail);
-    if (!pending) {
-      return NextResponse.json({ 
-        message: "No pending signup found. Please restart the signup process.", 
-        code: "NO_PENDING_SIGNUP" 
-      }, { status: 400 });
-    }
-    if (pending.expiresAt <= Date.now()) {
-      pendingBrandSignups.delete(normalizedEmail);
+
+    // Check if OTP is expired
+    if (expiresAt <= Date.now()) {
       return NextResponse.json({ 
         message: "Your verification code has expired. Please restart the signup process.", 
         code: "OTP_EXPIRED" 
       }, { status: 400 });
     }
-    if (pending.otp !== otp.trim()) {
+
+    // Server-side OTP validation
+    const trimmedOtp = otp.trim();
+    
+    // Validate OTP format (6 digits)
+    if (!/^\d{6}$/.test(trimmedOtp)) {
+      return NextResponse.json({ message: "Invalid OTP format" }, { status: 400 });
+    }
+
+    // Timing-safe comparison to prevent timing attacks
+    if (!timingSafeEqual(storedOtp, trimmedOtp)) {
       return NextResponse.json({ message: "Invalid OTP" }, { status: 400 });
     }
 
@@ -31,11 +62,11 @@ export async function POST(req: NextRequest) {
     const admin = getSupabaseAdmin();
     const { data: signUpRes, error: signUpErr } = await admin.auth.admin.createUser({
       email: normalizedEmail,
-      password: pending.password,
+      password: password,
       email_confirm: true,
       user_metadata: {
-        full_name: pending.brandName,
-        brand_name: pending.brandName,
+        full_name: brandName.trim(),
+        brand_name: brandName.trim(),
       }
     });
     if (signUpErr) {
@@ -48,8 +79,8 @@ export async function POST(req: NextRequest) {
       .from("brands")
       .insert({
         id: signUpRes.user?.id,
-        brand_name: pending.brandName,
-        brand_legal_name: pending.brandLegalName,
+        brand_name: brandName.trim(),
+        brand_legal_name: brandLegalName.trim(),
         email: normalizedEmail,
         verified: false,
       })
@@ -60,7 +91,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: "Failed to create brand row" }, { status: 500 });
     }
 
-    pendingBrandSignups.delete(normalizedEmail);
     return NextResponse.json({ message: "Verified and registered", brand }, { status: 201 });
   } catch (e) {
     console.error("verify error", e);

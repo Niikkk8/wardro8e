@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Montserrat, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { AuthProvider } from "@/contexts/AuthContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
@@ -55,11 +56,13 @@ export default function RootLayout({
     >
       <body className="font-sans antialiased">
         <ThemeProvider>
-          <div className="min-h-screen bg-background text-foreground">
-            <Navbar />
-            <main>{children}</main>
-            <Footer />
-          </div>
+          <AuthProvider>
+            <div className="min-h-screen bg-background text-foreground">
+              <Navbar />
+              <main>{children}</main>
+              <Footer />
+            </div>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

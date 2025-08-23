@@ -1,8 +1,11 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -39,6 +42,9 @@ interface FormErrors {
 }
 
 export default function BrandSignupPage() {
+  const router = useRouter();
+  const { pendingSignup, setPendingSignup, isOTPExpired } = useAuth();
+  
   const [step, setStep] = useState<Step>("form");
   const [formData, setFormData] = useState<FormData>({
     brandName: "",
@@ -58,6 +64,32 @@ export default function BrandSignupPage() {
   const [otpError, setOtpError] = useState("");
   const [isResending, setIsResending] = useState(false);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  // Check for authenticated user and redirect
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        router.push('/dashboard');
+      }
+    };
+    checkAuth();
+  }, [router]);
+
+  // Restore pending signup if available
+  useEffect(() => {
+    if (pendingSignup && !isOTPExpired()) {
+      setFormData({
+        brandName: pendingSignup.brandName,
+        brandLegalName: pendingSignup.brandLegalName,
+        email: pendingSignup.email,
+        password: pendingSignup.password,
+        confirmPassword: pendingSignup.password,
+        agreeToTerms: true,
+      });
+      setStep("otp");
+    }
+  }, [pendingSignup, isOTPExpired]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -119,6 +151,19 @@ export default function BrandSignupPage() {
         const j = await res.json().catch(() => ({}));
         throw new Error(j.message || 'Failed to send OTP');
       }
+
+      const data = await res.json();
+      
+      // Store signup data and OTP in AuthContext
+      setPendingSignup({
+        brandName: formData.brandName.trim(),
+        brandLegalName: formData.brandLegalName.trim(),
+        email: formData.email.trim().toLowerCase(),
+        password: formData.password,
+        otp: data.otp,
+        expiresAt: data.expiresAt,
+      });
+
       setStep("otp");
       setTimeout(() => inputRefs.current[0]?.focus(), 100);
     } catch (err: unknown) {
@@ -164,25 +209,40 @@ export default function BrandSignupPage() {
       setOtpError("Enter the 6-digit code");
       return;
     }
+
+    if (!pendingSignup) {
+      setOtpError("No pending signup found. Please restart the signup process.");
+      return;
+    }
+
+    if (isOTPExpired()) {
+      setOtpError("Your verification code has expired. Please restart the signup process.");
+      setPendingSignup(null);
+      return;
+    }
+
     setIsLoading(true);
     try {
       const res = await fetch('/api/auth/brand/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: formData.email.trim().toLowerCase(), otp: code })
+        body: JSON.stringify({ 
+          email: pendingSignup.email,
+          otp: code,
+          brandName: pendingSignup.brandName,
+          brandLegalName: pendingSignup.brandLegalName,
+          password: pendingSignup.password,
+          storedOtp: pendingSignup.otp,
+          expiresAt: pendingSignup.expiresAt
+        })
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
-        
-        // Handle specific error codes with actionable messages
-        if (j.code === 'NO_PENDING_SIGNUP' || j.code === 'OTP_EXPIRED') {
-          setOtpError(j.message + ' Click "Restart Signup" below.');
-          return;
-        }
-        
         throw new Error(j.message || 'Verification failed');
       }
 
+      // Clear pending signup after successful verification
+      setPendingSignup(null);
       setStep("success");
     } catch (err: unknown) {
       setOtpError(err instanceof Error ? err.message : "Verification failed");
@@ -192,28 +252,47 @@ export default function BrandSignupPage() {
   };
 
   const onResend = async () => {
-    if (isResending) return;
+    if (isResending || !pendingSignup) return;
     setIsResending(true);
+    setOtpError("");
     try {
       const res = await fetch('/api/auth/brand/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          brandName: formData.brandName.trim(),
-          brandLegalName: formData.brandLegalName.trim(),
-          email: formData.email.trim().toLowerCase(),
-          password: formData.password,
+          brandName: pendingSignup.brandName,
+          brandLegalName: pendingSignup.brandLegalName,
+          email: pendingSignup.email,
+          password: pendingSignup.password,
         })
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
         throw new Error(j.message || 'Failed to resend code');
       }
+
+      const data = await res.json();
+      
+      // Update pending signup with new OTP
+      setPendingSignup({
+        ...pendingSignup,
+        otp: data.otp,
+        expiresAt: data.expiresAt,
+      });
+
     } catch (err: unknown) {
       setOtpError(err instanceof Error ? err.message : "Failed to resend code");
     } finally {
       setIsResending(false);
     }
+  };
+
+  const restartSignup = () => {
+    setPendingSignup(null);
+    setStep("form");
+    setOTP(["", "", "", "", "", ""]);
+    setOtpError("");
+    setErrors({});
   };
 
   return (
