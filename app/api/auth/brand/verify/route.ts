@@ -10,10 +10,18 @@ export async function POST(req: NextRequest) {
     }
     const normalizedEmail = email.trim().toLowerCase();
     const pending = pendingBrandSignups.get(normalizedEmail);
-    if (!pending) return NextResponse.json({ message: "No pending signup found" }, { status: 400 });
+    if (!pending) {
+      return NextResponse.json({ 
+        message: "No pending signup found. Please restart the signup process.", 
+        code: "NO_PENDING_SIGNUP" 
+      }, { status: 400 });
+    }
     if (pending.expiresAt <= Date.now()) {
       pendingBrandSignups.delete(normalizedEmail);
-      return NextResponse.json({ message: "OTP expired. Restart signup." }, { status: 400 });
+      return NextResponse.json({ 
+        message: "Your verification code has expired. Please restart the signup process.", 
+        code: "OTP_EXPIRED" 
+      }, { status: 400 });
     }
     if (pending.otp !== otp.trim()) {
       return NextResponse.json({ message: "Invalid OTP" }, { status: 400 });

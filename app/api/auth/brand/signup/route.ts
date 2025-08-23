@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
 
     const normalizedEmail = email.trim().toLowerCase();
     const otp = generateOTP();
-    const expiresAt = Date.now() + 10 * 60 * 1000; // 10 min
+    const expiresAt = Date.now() + 15 * 60 * 1000; // 15 min
 
     pendingBrandSignups.set(normalizedEmail, {
       brandName: brandName.trim(),

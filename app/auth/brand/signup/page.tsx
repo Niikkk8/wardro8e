@@ -173,6 +173,13 @@ export default function BrandSignupPage() {
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
+        
+        // Handle specific error codes with actionable messages
+        if (j.code === 'NO_PENDING_SIGNUP' || j.code === 'OTP_EXPIRED') {
+          setOtpError(j.message + ' Click "Restart Signup" below.');
+          return;
+        }
+        
         throw new Error(j.message || 'Verification failed');
       }
 
