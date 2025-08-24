@@ -228,6 +228,7 @@ export default function VerificationPage() {
                 setErrors({ general: error.message || "Failed to submit verification" });
             }
         } catch (error) {
+            console.error("Error submitting verification:", error);
             setErrors({ general: "Failed to submit verification" });
         } finally {
             setIsLoading(false);
@@ -264,7 +265,7 @@ export default function VerificationPage() {
                         <AlertCircle className="w-12 h-12 text-yellow-600 mx-auto mb-4" />
                         <h2 className="text-2xl font-medium mb-2">Under Review</h2>
                         <p className="text-muted-foreground">
-                            Your verification is being reviewed. We'll notify you once it's complete.
+                            Your verification is being reviewed. We&apos;ll notify you once it&apos;s complete.
                         </p>
                     </div>
                 </div>
