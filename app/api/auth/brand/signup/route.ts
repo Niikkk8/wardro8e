@@ -1,24 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { validateEmail, validatePassword } from "@/lib/validators";
 import { sendOTPEmail, generateOTP } from "@/lib/email";
-import RateLimiter from "@/lib/rate-limiter";
+import { checkRateLimit, getClientIdentifier } from "@/lib/rate-limiter";
 
 export async function POST(req: NextRequest) {
   try {
     // Rate limiting: 5 requests per 15 minutes per IP
-    const clientId = RateLimiter.getClientIdentifier(req);
-    const rateLimitResult = await RateLimiter.isAllowed(clientId, 5, 15 * 60 * 1000);
+    const clientId = getClientIdentifier(req);
+    const rateLimitResult = checkRateLimit(clientId, 5);
     
     if (!rateLimitResult.allowed) {
       return NextResponse.json(
         { message: "Too many signup attempts. Please try again later." },
-        { 
-          status: 429,
-          headers: {
-            'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
-            'X-RateLimit-Reset': new Date(rateLimitResult.resetTime).toISOString(),
-          }
-        }
+        { status: 429 }
       );
     }
 
@@ -32,9 +26,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: "Invalid email" }, { status: 400 });
     }
 
-    const pass = validatePassword(password);
-    if (!pass.isValid) {
-      return NextResponse.json({ message: "Weak password", errors: pass.errors }, { status: 400 });
+    const passCheck = validatePassword(password);
+    if (!passCheck.isValid) {
+      return NextResponse.json({ message: `Password requirements: ${passCheck.errors.join(', ')}` }, { status: 400 });
     }
 
     const normalizedEmail = email.trim().toLowerCase();

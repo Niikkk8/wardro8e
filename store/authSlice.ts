@@ -2,44 +2,82 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 export type UserRole = 'brand' | 'user' | null;
 
-export interface AuthState {
-  status: 'unknown' | 'authenticated' | 'anonymous';
-  userId: string | null;
-  email: string | null;
+export interface User {
+  id: string;
+  email: string;
   role: UserRole;
 }
 
+export interface PendingSignup {
+  brandName: string;
+  brandLegalName: string;
+  email: string;
+  password: string;
+  otp: string;
+  expiresAt: number;
+}
+
+export interface AuthState {
+  user: User | null;
+  loading: boolean;
+  pendingSignup: PendingSignup | null;
+}
+
 const initialState: AuthState = {
-  status: 'unknown',
-  userId: null,
-  email: null,
-  role: null,
+  user: null,
+  loading: true,
+  pendingSignup: null,
 };
 
 export const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    setAuth: (
-      state,
-      action: PayloadAction<{ userId: string; email: string; role: UserRole }>
-    ) => {
-      state.status = 'authenticated';
-      state.userId = action.payload.userId;
-      state.email = action.payload.email;
-      state.role = action.payload.role;
+    setUser: (state, action: PayloadAction<User | null>) => {
+      state.user = action.payload;
+      state.loading = false;
     },
-    clearAuth: (state) => {
-      state.status = 'anonymous';
-      state.userId = null;
-      state.email = null;
-      state.role = null;
+    setLoading: (state, action: PayloadAction<boolean>) => {
+      state.loading = action.payload;
     },
-    setUnknown: (state) => {
-      state.status = 'unknown';
+    clearUser: (state) => {
+      state.user = null;
+      state.loading = false;
+    },
+    setPendingSignup: (state, action: PayloadAction<PendingSignup | null>) => {
+      state.pendingSignup = action.payload;
+      
+      // Handle localStorage
+      if (action.payload) {
+        localStorage.setItem('wardro8e_pending', JSON.stringify(action.payload));
+      } else {
+        localStorage.removeItem('wardro8e_pending');
+      }
+    },
+    loadPendingSignup: (state) => {
+      const stored = localStorage.getItem('wardro8e_pending');
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored) as PendingSignup;
+          if (parsed.expiresAt > Date.now()) {
+            state.pendingSignup = parsed;
+          } else {
+            localStorage.removeItem('wardro8e_pending');
+          }
+        } catch {
+          localStorage.removeItem('wardro8e_pending');
+        }
+      }
     },
   },
 });
 
-export const { setAuth, clearAuth, setUnknown } = authSlice.actions;
+export const { 
+  setUser, 
+  setLoading, 
+  clearUser, 
+  setPendingSignup, 
+  loadPendingSignup 
+} = authSlice.actions;
+
 export default authSlice.reducer;

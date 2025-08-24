@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { Montserrat, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
-import { AuthProvider } from "@/contexts/AuthContext";
 import StoreProvider from "@/app/StoreProvider";
 import RouteAwareChrome from "@/components/RouteAwareChrome";
+import AuthRedirect from "@/components/AuthRedirect";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -56,15 +56,14 @@ export default function RootLayout({
     >
       <body className="font-sans antialiased">
         <ThemeProvider>
-          <AuthProvider>
-            <StoreProvider>
-              <div className="min-h-screen bg-background text-foreground">
-                <RouteAwareChrome>
-                  <main>{children}</main>
-                </RouteAwareChrome>
-              </div>
-            </StoreProvider>
-          </AuthProvider>
+          <StoreProvider>
+            <AuthRedirect />
+            <div className="min-h-screen bg-background text-foreground">
+              <RouteAwareChrome>
+                <main>{children}</main>
+              </RouteAwareChrome>
+            </div>
+          </StoreProvider>
         </ThemeProvider>
       </body>
     </html>

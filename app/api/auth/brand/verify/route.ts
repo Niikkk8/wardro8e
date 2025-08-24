@@ -1,26 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
-import RateLimiter from "@/lib/rate-limiter";
-
-// Timing-safe string comparison to prevent timing attacks
-function timingSafeEqual(a: string, b: string): boolean {
-  if (a.length !== b.length) {
-    return false;
-  }
-  
-  let result = 0;
-  for (let i = 0; i < a.length; i++) {
-    result |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  }
-  
-  return result === 0;
-}
+import { checkRateLimit, getClientIdentifier } from "@/lib/rate-limiter";
 
 export async function POST(req: NextRequest) {
   try {
     // Rate limiting: 10 verification attempts per 15 minutes per IP
-    const clientId = RateLimiter.getClientIdentifier(req);
-    const rateLimitResult = await RateLimiter.isAllowed(`verify:${clientId}`, 10, 15 * 60 * 1000);
+    const clientId = getClientIdentifier(req);
+    const rateLimitResult = checkRateLimit(`verify:${clientId}`, 10);
     
     if (!rateLimitResult.allowed) {
       return NextResponse.json(
@@ -53,8 +39,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: "Invalid OTP format" }, { status: 400 });
     }
 
-    // Timing-safe comparison to prevent timing attacks
-    if (!timingSafeEqual(storedOtp, trimmedOtp)) {
+    // Simple OTP comparison
+    if (storedOtp !== trimmedOtp) {
       return NextResponse.json({ message: "Invalid OTP" }, { status: 400 });
     }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Mail, Lock, Eye, EyeOff, AlertCircle, ArrowLeft, Loader2 } from "lucide-react";
@@ -8,40 +8,39 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import { supabase } from "@/lib/supabase";
+import { useAppSelector, useAppDispatch } from "@/store/hooks";
+import { login } from "@/store/authActions";
+import { validateEmail } from "@/lib/validators";
 
 export default function BrandLoginPage() {
   const router = useRouter();
+  const dispatch = useAppDispatch();
+  const { user, loading } = useAppSelector((state: any) => state.auth);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [show, setShow] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const validateEmail = (v: string) => /[^\s@]+@[^\s@]+\.[^\s@]+/.test(v);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    if (!validateEmail(email)) return setError("Enter a valid email");
-    if (!password) return setError("Enter your password");
+    
+    if (!validateEmail(email)) {
+      setError("Enter a valid email");
+      return;
+    }
+    
+    if (!password) {
+      setError("Enter your password");
+      return;
+    }
+
     setIsLoading(true);
+    
     try {
-      const res = await fetch('/api/auth/brand/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim().toLowerCase(), password })
-      });
-      if (!res.ok) {
-        const j = await res.json().catch(() => ({}));
-        throw new Error(j.message || 'Invalid credentials');
-      }
-      const j = await res.json();
-      if (j?.access_token && j?.refresh_token) {
-        await supabase.auth.setSession({ access_token: j.access_token, refresh_token: j.refresh_token });
-      }
-      window.location.href = '/dashboard';
+      await dispatch(login(email.trim().toLowerCase(), password));
+      // Note: Redirection is now handled by AuthRedirect component
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Login failed');
     } finally {
@@ -49,20 +48,7 @@ export default function BrandLoginPage() {
     }
   };
 
-  useEffect(() => {
-    let isMounted = true;
-    supabase.auth.getSession().then(({ data }) => {
-      if (!isMounted) return;
-      if (data.session) router.replace("/dashboard");
-    });
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) router.replace("/dashboard");
-    });
-    return () => {
-      isMounted = false;
-      sub.subscription.unsubscribe();
-    };
-  }, [router]);
+  // Note: Redirection is now handled by AuthRedirect component
 
   return (
     <div className="pt-24 md:pt-28 pb-10 md:pb-14 min-h-screen bg-gradient-to-br from-primary/10 to-primary/5">
