@@ -12,13 +12,14 @@
 1. [Project Overview](#project-overview)
 2. [Tech Stack](#tech-stack)
 3. [Database Architecture](#database-architecture)
-4. [Frontend Implementation](#frontend-implementation)
-5. [Backend Implementation](#backend-implementation)
-6. [AI Recommendation System](#ai-recommendation-system)
-7. [Business Strategy](#business-strategy)
-8. [Content & Marketing Plan](#content--marketing-plan)
-9. [Development Roadmap](#development-roadmap)
-10. [Getting Started](#getting-started)
+4. [Brand Verification System](#brand-verification-system)
+5. [Frontend Implementation](#frontend-implementation)
+6. [Backend Implementation](#backend-implementation)
+7. [AI Recommendation System](#ai-recommendation-system)
+8. [Business Strategy](#business-strategy)
+9. [Content & Marketing Plan](#content--marketing-plan)
+10. [Development Roadmap](#development-roadmap)
+11. [Getting Started](#getting-started)
 
 ---
 
@@ -108,42 +109,84 @@ CREATE TABLE users (
     full_name VARCHAR(255),
     phone VARCHAR(20),
     avatar_url TEXT,
+    role VARCHAR(20) DEFAULT 'user', -- 'user', 'brand', 'admin'
     onboarding_completed BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW()
 );
 
--- User Demographics
-CREATE TABLE user_demographics (
-    user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
-    age_range VARCHAR(20), -- '18-24', '25-34', etc.
-    city VARCHAR(100),
-    state VARCHAR(100),
-    income_bracket VARCHAR(50), -- 'under-5L', '5L-10L', etc.
-    occupation VARCHAR(100),
-    created_at TIMESTAMP DEFAULT NOW()
-);
-
--- Style Preferences
-CREATE TABLE style_preferences (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    style_name VARCHAR(50), -- 'minimalist', 'bohemian', 'streetwear'
-    preference_score FLOAT DEFAULT 0.5, -- 0 to 1
-    created_at TIMESTAMP DEFAULT NOW()
-);
-
--- Brands Table
+-- Brands Table (Simple)
 CREATE TABLE brands (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    email VARCHAR(255) UNIQUE NOT NULL,
     brand_name VARCHAR(255) UNIQUE NOT NULL,
+    brand_legal_name VARCHAR(255),
     slug VARCHAR(255) UNIQUE NOT NULL,
     description TEXT,
     logo_url TEXT,
     cover_image_url TEXT,
     verified BOOLEAN DEFAULT FALSE,
+    verified_at TIMESTAMP,
     commission_rate DECIMAL(5,2) DEFAULT 15.00,
+    is_active BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Brand Verifications Table (Single table for verification process)
+CREATE TABLE brand_verifications (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    brand_id UUID REFERENCES brands(id) ON DELETE CASCADE,
+
+    -- Status Tracking
+    status VARCHAR(50) DEFAULT 'pending', -- 'pending', 'documents_uploaded', 'under_review', 'approved', 'rejected'
+    rejection_reason TEXT,
+    reviewed_by UUID REFERENCES users(id),
+    reviewed_at TIMESTAMP,
+
+    -- Business Details
+    business_type VARCHAR(50), -- 'individual', 'company', 'partnership'
+    gstin VARCHAR(15),
+    pan_number VARCHAR(10),
+
+    -- Contact Details
+    contact_name VARCHAR(255) NOT NULL,
+    contact_phone VARCHAR(15) NOT NULL,
+    contact_email VARCHAR(255) NOT NULL,
+
+    -- Address
+    address_line1 VARCHAR(255) NOT NULL,
+    address_line2 VARCHAR(255),
+    city VARCHAR(100) NOT NULL,
+    state VARCHAR(100) NOT NULL,
+    pincode VARCHAR(10) NOT NULL,
+
+    -- Bank Details
+    bank_name VARCHAR(255),
+    account_holder_name VARCHAR(255),
+    account_number VARCHAR(50),
+    ifsc_code VARCHAR(11),
+
+    -- Documents (stored as JSON array with file paths)
+    documents JSONB DEFAULT '[]', -- [{type: 'gst', url: '...', uploaded_at: '...'}, ...]
+
+    -- Verification Flags
+    phone_verified BOOLEAN DEFAULT FALSE,
+    email_verified BOOLEAN DEFAULT FALSE,
+    documents_verified BOOLEAN DEFAULT FALSE,
+    bank_verified BOOLEAN DEFAULT FALSE,
+
+    -- Social/Online Presence
+    website_url TEXT,
+    instagram_handle VARCHAR(100),
+
+    -- Internal Notes
+    admin_notes TEXT,
+
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW(),
+
+    UNIQUE(brand_id)
 );
 
 -- Products Table
@@ -162,6 +205,18 @@ CREATE TABLE products (
     stock_quantity INTEGER DEFAULT 0,
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- User Style Preferences
+CREATE TABLE user_preferences (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    style_tags TEXT[], -- ['minimalist', 'bohemian', 'casual']
+    favorite_colors TEXT[], -- ['blue', 'black', 'white']
+    size_preferences JSONB, -- {tops: 'M', bottoms: 'L'}
+    price_range JSONB, -- {min: 500, max: 5000}
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
 );
 
 -- User Interactions
@@ -232,6 +287,1074 @@ CREATE INDEX idx_products_price ON products(price);
 
 -- Vector similarity search for recommendations
 CREATE INDEX idx_products_embedding ON products USING ivfflat (embedding vector_cosine_ops);
+
+-- Brand verification status
+CREATE INDEX idx_verifications_status ON brand_verifications(status);
+CREATE INDEX idx_brands_verified ON brands(verified);
+```
+
+---
+
+## Brand Verification System
+
+### Overview
+
+A streamlined verification system to ensure only legitimate brands can sell on wardro8e. The process is simple yet effective, focusing on essential documentation and manual review.
+
+### Verification Flow
+
+```
+1. Brand Registration → 2. Document Upload → 3. Admin Review → 4. Approved/Rejected
+```
+
+### Supabase Storage Setup
+
+```sql
+-- Create storage bucket for brand documents
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES (
+    'brand-docs',
+    'brand-docs',
+    false, -- Private bucket
+    10485760, -- 10MB limit
+    ARRAY['image/jpeg', 'image/png', 'application/pdf']::text[]
+);
+
+-- Storage policies
+CREATE POLICY "Brands can upload own docs"
+ON storage.objects FOR INSERT
+TO authenticated
+WITH CHECK (
+    bucket_id = 'brand-docs' AND
+    auth.uid()::text = (storage.foldername(name))[1]
+);
+
+CREATE POLICY "Brands can view own docs"
+ON storage.objects FOR SELECT
+TO authenticated
+USING (
+    bucket_id = 'brand-docs' AND
+    auth.uid()::text = (storage.foldername(name))[1]
+);
+
+-- Admin access
+CREATE POLICY "Admins can manage all docs"
+ON storage.objects FOR ALL
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM users
+        WHERE users.id = auth.uid()
+        AND users.role = 'admin'
+    )
+);
+```
+
+### Step 1: Brand Registration
+
+```typescript
+// app/brands/register/page.tsx
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+
+export default function BrandRegistrationPage() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    brandName: "",
+    brandLegalName: "",
+    businessType: "individual",
+    gstin: "",
+    panNumber: "",
+    contactName: "",
+    contactPhone: "",
+    contactEmail: "",
+    addressLine1: "",
+    addressLine2: "",
+    city: "",
+    state: "",
+    pincode: "",
+    website: "",
+    instagram: "",
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    const supabase = createClient();
+
+    try {
+      // Create brand record
+      const { data: brand, error: brandError } = await supabase
+        .from("brands")
+        .insert({
+          brand_name: formData.brandName,
+          brand_legal_name: formData.brandLegalName,
+          slug: formData.brandName.toLowerCase().replace(/\s+/g, "-"),
+          email: formData.contactEmail,
+        })
+        .select()
+        .single();
+
+      if (brandError) throw brandError;
+
+      // Create verification record
+      const { error: verificationError } = await supabase
+        .from("brand_verifications")
+        .insert({
+          brand_id: brand.id,
+          business_type: formData.businessType,
+          gstin: formData.gstin,
+          pan_number: formData.panNumber,
+          contact_name: formData.contactName,
+          contact_phone: formData.contactPhone,
+          contact_email: formData.contactEmail,
+          address_line1: formData.addressLine1,
+          address_line2: formData.addressLine2,
+          city: formData.city,
+          state: formData.state,
+          pincode: formData.pincode,
+          website_url: formData.website,
+          instagram_handle: formData.instagram,
+          status: "pending",
+        });
+
+      if (verificationError) throw verificationError;
+
+      // Redirect to document upload
+      router.push(`/brands/verification/${brand.id}/documents`);
+    } catch (error) {
+      console.error("Registration error:", error);
+      alert("Registration failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="max-w-2xl mx-auto p-6">
+      <h1 className="text-3xl font-bold mb-8">Brand Registration</h1>
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Brand Information */}
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold">Brand Information</h2>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Brand Name *
+            </label>
+            <input
+              type="text"
+              required
+              value={formData.brandName}
+              onChange={(e) =>
+                setFormData({ ...formData, brandName: e.target.value })
+              }
+              className="w-full px-3 py-2 border rounded-lg"
+              placeholder="Your brand name as shown to customers"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Legal Business Name *
+            </label>
+            <input
+              type="text"
+              required
+              value={formData.brandLegalName}
+              onChange={(e) =>
+                setFormData({ ...formData, brandLegalName: e.target.value })
+              }
+              className="w-full px-3 py-2 border rounded-lg"
+              placeholder="Registered business name"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Business Type *
+            </label>
+            <select
+              value={formData.businessType}
+              onChange={(e) =>
+                setFormData({ ...formData, businessType: e.target.value })
+              }
+              className="w-full px-3 py-2 border rounded-lg"
+            >
+              <option value="individual">Individual/Sole Proprietor</option>
+              <option value="company">Private Limited Company</option>
+              <option value="partnership">Partnership/LLP</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Tax Information */}
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold">Tax Information</h2>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              GSTIN (if applicable)
+            </label>
+            <input
+              type="text"
+              value={formData.gstin}
+              onChange={(e) =>
+                setFormData({ ...formData, gstin: e.target.value })
+              }
+              className="w-full px-3 py-2 border rounded-lg"
+              placeholder="15 digit GST number"
+              maxLength={15}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              PAN Number *
+            </label>
+            <input
+              type="text"
+              required
+              value={formData.panNumber}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  panNumber: e.target.value.toUpperCase(),
+                })
+              }
+              className="w-full px-3 py-2 border rounded-lg"
+              placeholder="ABCDE1234F"
+              maxLength={10}
+            />
+          </div>
+        </div>
+
+        {/* Contact Information */}
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold">Contact Information</h2>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Contact Person Name *
+            </label>
+            <input
+              type="text"
+              required
+              value={formData.contactName}
+              onChange={(e) =>
+                setFormData({ ...formData, contactName: e.target.value })
+              }
+              className="w-full px-3 py-2 border rounded-lg"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Phone Number *
+            </label>
+            <input
+              type="tel"
+              required
+              value={formData.contactPhone}
+              onChange={(e) =>
+                setFormData({ ...formData, contactPhone: e.target.value })
+              }
+              className="w-full px-3 py-2 border rounded-lg"
+              placeholder="9876543210"
+              maxLength={10}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Email Address *
+            </label>
+            <input
+              type="email"
+              required
+              value={formData.contactEmail}
+              onChange={(e) =>
+                setFormData({ ...formData, contactEmail: e.target.value })
+              }
+              className="w-full px-3 py-2 border rounded-lg"
+            />
+          </div>
+        </div>
+
+        {/* Address */}
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold">Business Address</h2>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Address Line 1 *
+            </label>
+            <input
+              type="text"
+              required
+              value={formData.addressLine1}
+              onChange={(e) =>
+                setFormData({ ...formData, addressLine1: e.target.value })
+              }
+              className="w-full px-3 py-2 border rounded-lg"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Address Line 2
+            </label>
+            <input
+              type="text"
+              value={formData.addressLine2}
+              onChange={(e) =>
+                setFormData({ ...formData, addressLine2: e.target.value })
+              }
+              className="w-full px-3 py-2 border rounded-lg"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">City *</label>
+              <input
+                type="text"
+                required
+                value={formData.city}
+                onChange={(e) =>
+                  setFormData({ ...formData, city: e.target.value })
+                }
+                className="w-full px-3 py-2 border rounded-lg"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">State *</label>
+              <input
+                type="text"
+                required
+                value={formData.state}
+                onChange={(e) =>
+                  setFormData({ ...formData, state: e.target.value })
+                }
+                className="w-full px-3 py-2 border rounded-lg"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Pincode *</label>
+            <input
+              type="text"
+              required
+              value={formData.pincode}
+              onChange={(e) =>
+                setFormData({ ...formData, pincode: e.target.value })
+              }
+              className="w-full px-3 py-2 border rounded-lg"
+              maxLength={6}
+            />
+          </div>
+        </div>
+
+        {/* Online Presence */}
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold">Online Presence (Optional)</h2>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Website URL
+            </label>
+            <input
+              type="url"
+              value={formData.website}
+              onChange={(e) =>
+                setFormData({ ...formData, website: e.target.value })
+              }
+              className="w-full px-3 py-2 border rounded-lg"
+              placeholder="https://yourbrand.com"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Instagram Handle
+            </label>
+            <input
+              type="text"
+              value={formData.instagram}
+              onChange={(e) =>
+                setFormData({ ...formData, instagram: e.target.value })
+              }
+              className="w-full px-3 py-2 border rounded-lg"
+              placeholder="@yourbrand"
+            />
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full py-3 bg-pink-500 text-white rounded-lg font-medium hover:bg-pink-600 disabled:opacity-50"
+        >
+          {loading ? "Creating..." : "Continue to Document Upload"}
+        </button>
+      </form>
+    </div>
+  );
+}
+```
+
+### Step 2: Document Upload
+
+```typescript
+// app/brands/verification/[brandId]/documents/page.tsx
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+
+const requiredDocuments = [
+  { type: "pan_card", label: "PAN Card", required: true },
+  { type: "gst_certificate", label: "GST Certificate", required: false },
+  { type: "address_proof", label: "Address Proof", required: true },
+  {
+    type: "bank_statement",
+    label: "Bank Statement (Last 3 months)",
+    required: true,
+  },
+  { type: "brand_logo", label: "Brand Logo", required: true },
+  {
+    type: "product_catalog",
+    label: "Product Catalog/Samples",
+    required: false,
+  },
+];
+
+export default function DocumentUploadPage({
+  params,
+}: {
+  params: { brandId: string };
+}) {
+  const router = useRouter();
+  const [uploadedDocs, setUploadedDocs] = useState<Record<string, any>>({});
+  const [uploading, setUploading] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleFileUpload = async (docType: string, file: File) => {
+    setUploading(docType);
+    const supabase = createClient();
+
+    try {
+      // Upload to Supabase Storage
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${params.brandId}/${docType}-${Date.now()}.${fileExt}`;
+
+      const { data, error } = await supabase.storage
+        .from("brand-docs")
+        .upload(fileName, file);
+
+      if (error) throw error;
+
+      // Get public URL
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("brand-docs").getPublicUrl(fileName);
+
+      // Update uploaded docs state
+      setUploadedDocs((prev) => ({
+        ...prev,
+        [docType]: {
+          type: docType,
+          url: publicUrl,
+          fileName: file.name,
+          uploadedAt: new Date().toISOString(),
+        },
+      }));
+    } catch (error) {
+      console.error("Upload error:", error);
+      alert("Failed to upload document");
+    } finally {
+      setUploading("");
+    }
+  };
+
+  const handleSubmit = async () => {
+    // Check if all required documents are uploaded
+    const missingDocs = requiredDocuments
+      .filter((doc) => doc.required && !uploadedDocs[doc.type])
+      .map((doc) => doc.label);
+
+    if (missingDocs.length > 0) {
+      alert(`Please upload: ${missingDocs.join(", ")}`);
+      return;
+    }
+
+    setSubmitting(true);
+    const supabase = createClient();
+
+    try {
+      // Update verification record with documents
+      const { error } = await supabase
+        .from("brand_verifications")
+        .update({
+          documents: Object.values(uploadedDocs),
+          status: "documents_uploaded",
+          documents_verified: true,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("brand_id", params.brandId);
+
+      if (error) throw error;
+
+      // Redirect to confirmation page
+      router.push(`/brands/verification/${params.brandId}/confirmation`);
+    } catch (error) {
+      console.error("Submission error:", error);
+      alert("Failed to submit documents");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="max-w-3xl mx-auto p-6">
+      <h1 className="text-3xl font-bold mb-2">Upload Documents</h1>
+      <p className="text-gray-600 mb-8">
+        Please upload the following documents for verification. Files should be
+        in PDF, JPG, or PNG format and under 10MB.
+      </p>
+
+      <div className="space-y-4">
+        {requiredDocuments.map((doc) => (
+          <div key={doc.type} className="border rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-medium">
+                  {doc.label}
+                  {doc.required && <span className="text-red-500 ml-1">*</span>}
+                </h3>
+                {uploadedDocs[doc.type] && (
+                  <p className="text-sm text-green-600 mt-1">
+                    ✓ {uploadedDocs[doc.type].fileName}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <input
+                  type="file"
+                  id={doc.type}
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleFileUpload(doc.type, file);
+                  }}
+                  disabled={uploading === doc.type}
+                />
+                <label
+                  htmlFor={doc.type}
+                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg cursor-pointer inline-block"
+                >
+                  {uploading === doc.type
+                    ? "Uploading..."
+                    : uploadedDocs[doc.type]
+                    ? "Replace"
+                    : "Upload"}
+                </label>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-8 p-4 bg-blue-50 rounded-lg">
+        <h3 className="font-medium mb-2">📝 Next Steps</h3>
+        <ol className="text-sm text-gray-700 space-y-1 list-decimal list-inside">
+          <li>
+            After uploading documents, our team will review your application
+          </li>
+          <li>Verification typically takes 2-3 business days</li>
+          <li>You'll receive an email once your brand is approved</li>
+          <li>For manual signature on agreement, our team will contact you</li>
+        </ol>
+      </div>
+
+      <button
+        onClick={handleSubmit}
+        disabled={submitting || Object.keys(uploadedDocs).length === 0}
+        className="w-full mt-8 py-3 bg-pink-500 text-white rounded-lg font-medium hover:bg-pink-600 disabled:opacity-50"
+      >
+        {submitting ? "Submitting..." : "Submit for Verification"}
+      </button>
+    </div>
+  );
+}
+```
+
+### Step 3: Admin Review Dashboard
+
+```typescript
+// app/admin/brands/pending/page.tsx
+"use client";
+
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+
+export default function AdminBrandReviewPage() {
+  const [verifications, setVerifications] = useState([]);
+  const [selectedBrand, setSelectedBrand] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchPendingVerifications();
+  }, []);
+
+  const fetchPendingVerifications = async () => {
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from("brand_verifications")
+      .select(
+        `
+        *,
+        brands (
+          id,
+          brand_name,
+          brand_legal_name,
+          email
+        )
+      `
+      )
+      .in("status", ["documents_uploaded", "under_review"])
+      .order("created_at", { ascending: true });
+
+    if (data) setVerifications(data);
+    setLoading(false);
+  };
+
+  const handleApprove = async (verificationId: string, brandId: string) => {
+    const supabase = createClient();
+
+    // Update verification status
+    await supabase
+      .from("brand_verifications")
+      .update({
+        status: "approved",
+        reviewed_at: new Date().toISOString(),
+        reviewed_by: (await supabase.auth.getUser()).data.user?.id,
+      })
+      .eq("id", verificationId);
+
+    // Update brand as verified
+    await supabase
+      .from("brands")
+      .update({
+        verified: true,
+        verified_at: new Date().toISOString(),
+        is_active: true,
+      })
+      .eq("id", brandId);
+
+    // Send approval email (implement separately)
+    await fetch("/api/emails/brand-approved", {
+      method: "POST",
+      body: JSON.stringify({ brandId }),
+    });
+
+    fetchPendingVerifications();
+  };
+
+  const handleReject = async (
+    verificationId: string,
+    brandId: string,
+    reason: string
+  ) => {
+    const supabase = createClient();
+
+    await supabase
+      .from("brand_verifications")
+      .update({
+        status: "rejected",
+        rejection_reason: reason,
+        reviewed_at: new Date().toISOString(),
+        reviewed_by: (await supabase.auth.getUser()).data.user?.id,
+      })
+      .eq("id", verificationId);
+
+    // Send rejection email (implement separately)
+    await fetch("/api/emails/brand-rejected", {
+      method: "POST",
+      body: JSON.stringify({ brandId, reason }),
+    });
+
+    fetchPendingVerifications();
+  };
+
+  if (loading) return <div>Loading...</div>;
+
+  return (
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-6">Brand Verification Review</h1>
+
+      <div className="grid grid-cols-3 gap-6">
+        {/* List of pending verifications */}
+        <div className="col-span-1 space-y-2">
+          <h2 className="font-semibold mb-4">
+            Pending Reviews ({verifications.length})
+          </h2>
+          {verifications.map((v) => (
+            <div
+              key={v.id}
+              onClick={() => setSelectedBrand(v)}
+              className={`p-4 border rounded-lg cursor-pointer hover:bg-gray-50 ${
+                selectedBrand?.id === v.id ? "border-pink-500 bg-pink-50" : ""
+              }`}
+            >
+              <h3 className="font-medium">{v.brands.brand_name}</h3>
+              <p className="text-sm text-gray-600">{v.contact_name}</p>
+              <span
+                className={`text-xs px-2 py-1 rounded mt-2 inline-block ${
+                  v.status === "documents_uploaded"
+                    ? "bg-yellow-100 text-yellow-800"
+                    : "bg-blue-100 text-blue-800"
+                }`}
+              >
+                {v.status.replace("_", " ")}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {/* Details panel */}
+        <div className="col-span-2">
+          {selectedBrand ? (
+            <div className="border rounded-lg p-6">
+              <h2 className="text-xl font-bold mb-4">
+                {selectedBrand.brands.brand_name}
+              </h2>
+
+              {/* Business Details */}
+              <div className="mb-6">
+                <h3 className="font-semibold mb-3">Business Information</h3>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-gray-600">Legal Name:</span>
+                    <p className="font-medium">
+                      {selectedBrand.brands.brand_legal_name}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Type:</span>
+                    <p className="font-medium">{selectedBrand.business_type}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">GSTIN:</span>
+                    <p className="font-medium">
+                      {selectedBrand.gstin || "Not provided"}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">PAN:</span>
+                    <p className="font-medium">{selectedBrand.pan_number}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Contact Details */}
+              <div className="mb-6">
+                <h3 className="font-semibold mb-3">Contact Information</h3>
+                <div className="text-sm space-y-1">
+                  <p>
+                    <span className="text-gray-600">Name:</span>{" "}
+                    {selectedBrand.contact_name}
+                  </p>
+                  <p>
+                    <span className="text-gray-600">Phone:</span>{" "}
+                    {selectedBrand.contact_phone}
+                  </p>
+                  <p>
+                    <span className="text-gray-600">Email:</span>{" "}
+                    {selectedBrand.contact_email}
+                  </p>
+                  <p>
+                    <span className="text-gray-600">Address:</span>{" "}
+                    {selectedBrand.address_line1}, {selectedBrand.city},{" "}
+                    {selectedBrand.state} - {selectedBrand.pincode}
+                  </p>
+                </div>
+              </div>
+
+              {/* Documents */}
+              <div className="mb-6">
+                <h3 className="font-semibold mb-3">Uploaded Documents</h3>
+                <div className="space-y-2">
+                  {selectedBrand.documents &&
+                    selectedBrand.documents.map((doc: any) => (
+                      <div
+                        key={doc.type}
+                        className="flex items-center justify-between p-2 bg-gray-50 rounded"
+                      >
+                        <span className="text-sm">
+                          {doc.type.replace("_", " ")}
+                        </span>
+                        <a
+                          href={doc.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm text-blue-500 hover:underline"
+                        >
+                          View Document
+                        </a>
+                      </div>
+                    ))}
+                </div>
+              </div>
+
+              {/* Admin Notes */}
+              <div className="mb-6">
+                <h3 className="font-semibold mb-3">Admin Notes</h3>
+                <textarea
+                  className="w-full p-2 border rounded-lg"
+                  rows={3}
+                  placeholder="Add internal notes..."
+                  value={selectedBrand.admin_notes || ""}
+                  onChange={(e) => {
+                    // Update admin notes in real-time (implement as needed)
+                  }}
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3">
+                <button
+                  onClick={() =>
+                    handleApprove(selectedBrand.id, selectedBrand.brand_id)
+                  }
+                  className="flex-1 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+                >
+                  Approve Brand
+                </button>
+                <button
+                  onClick={() => {
+                    const reason = prompt("Rejection reason:");
+                    if (reason)
+                      handleReject(
+                        selectedBrand.id,
+                        selectedBrand.brand_id,
+                        reason
+                      );
+                  }}
+                  className="flex-1 py-2 border border-red-500 text-red-500 rounded-lg hover:bg-red-50"
+                >
+                  Reject
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="border rounded-lg p-12 text-center text-gray-500">
+              Select a brand to review
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+### Brand Dashboard - Track Verification Status
+
+```typescript
+// app/brands/dashboard/verification-status/page.tsx
+"use client";
+
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+
+export default function VerificationStatusPage() {
+  const [verification, setVerification] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchVerificationStatus();
+  }, []);
+
+  const fetchVerificationStatus = async () => {
+    const supabase = createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (user) {
+      const { data } = await supabase
+        .from("brand_verifications")
+        .select(
+          `
+          *,
+          brands (*)
+        `
+        )
+        .eq("brands.user_id", user.id)
+        .single();
+
+      setVerification(data);
+    }
+    setLoading(false);
+  };
+
+  if (loading) return <div>Loading...</div>;
+  if (!verification) return <div>No verification found</div>;
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "approved":
+        return "bg-green-100 text-green-800";
+      case "rejected":
+        return "bg-red-100 text-red-800";
+      case "under_review":
+        return "bg-blue-100 text-blue-800";
+      default:
+        return "bg-yellow-100 text-yellow-800";
+    }
+  };
+
+  const getStatusMessage = (status: string) => {
+    switch (status) {
+      case "pending":
+        return "Please complete your document upload to proceed with verification.";
+      case "documents_uploaded":
+        return "Your documents have been received and are waiting for review.";
+      case "under_review":
+        return "Our team is currently reviewing your application. This usually takes 2-3 business days.";
+      case "approved":
+        return "🎉 Congratulations! Your brand has been verified and you can now start selling on wardro8e.";
+      case "rejected":
+        return `Unfortunately, your application was not approved. Reason: ${verification.rejection_reason}`;
+      default:
+        return "Unknown status";
+    }
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto p-6">
+      <h1 className="text-3xl font-bold mb-8">Verification Status</h1>
+
+      {/* Status Banner */}
+      <div
+        className={`p-6 rounded-lg mb-8 ${getStatusColor(verification.status)
+          .replace("text-", "bg-")
+          .replace("800", "50")}`}
+      >
+        <div className="flex items-center justify-between">
+          <div>
+            <span
+              className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
+                verification.status
+              )}`}
+            >
+              {verification.status.replace("_", " ").toUpperCase()}
+            </span>
+            <p className="mt-3 text-gray-700">
+              {getStatusMessage(verification.status)}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Progress Steps */}
+      <div className="mb-8">
+        <h2 className="text-xl font-semibold mb-4">Verification Progress</h2>
+        <div className="flex items-center justify-between">
+          {["Registration", "Documents", "Review", "Approved"].map(
+            (step, index) => {
+              const isComplete =
+                (index === 0 && verification.status !== "pending") ||
+                (index === 1 &&
+                  ["documents_uploaded", "under_review", "approved"].includes(
+                    verification.status
+                  )) ||
+                (index === 2 &&
+                  ["under_review", "approved"].includes(verification.status)) ||
+                (index === 3 && verification.status === "approved");
+
+              return (
+                <div key={step} className="flex-1 text-center">
+                  <div
+                    className={`w-10 h-10 mx-auto rounded-full flex items-center justify-center ${
+                      isComplete
+                        ? "bg-green-500 text-white"
+                        : "bg-gray-200 text-gray-500"
+                    }`}
+                  >
+                    {isComplete ? "✓" : index + 1}
+                  </div>
+                  <p className="mt-2 text-sm">{step}</p>
+                </div>
+              );
+            }
+          )}
+        </div>
+      </div>
+
+      {/* Submitted Information */}
+      <div className="border rounded-lg p-6">
+        <h2 className="text-xl font-semibold mb-4">Submitted Information</h2>
+        <div className="grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <span className="text-gray-600">Business Type:</span>
+            <p className="font-medium">{verification.business_type}</p>
+          </div>
+          <div>
+            <span className="text-gray-600">Contact Person:</span>
+            <p className="font-medium">{verification.contact_name}</p>
+          </div>
+          <div>
+            <span className="text-gray-600">Phone:</span>
+            <p className="font-medium">{verification.contact_phone}</p>
+          </div>
+          <div>
+            <span className="text-gray-600">Email:</span>
+            <p className="font-medium">{verification.contact_email}</p>
+          </div>
+          <div className="col-span-2">
+            <span className="text-gray-600">Address:</span>
+            <p className="font-medium">
+              {verification.address_line1}, {verification.city},{" "}
+              {verification.state} - {verification.pincode}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+      {verification.status === "pending" && (
+        <button className="mt-6 w-full py-3 bg-pink-500 text-white rounded-lg hover:bg-pink-600">
+          Complete Document Upload
+        </button>
+      )}
+
+      {verification.status === "rejected" && (
+        <button className="mt-6 w-full py-3 bg-pink-500 text-white rounded-lg hover:bg-pink-600">
+          Reapply for Verification
+        </button>
+      )}
+
+      {verification.status === "approved" && (
+        <button className="mt-6 w-full py-3 bg-pink-500 text-white rounded-lg hover:bg-pink-600">
+          Go to Brand Dashboard
+        </button>
+      )}
+    </div>
+  );
+}
 ```
 
 ---
@@ -253,6 +1376,12 @@ wardro8e/
 │   │   ├── brand/[slug]/    # Brand page
 │   │   ├── collections/     # User collections
 │   │   └── profile/         # User profile
+│   ├── brands/              # Brand portal
+│   │   ├── register/        # Brand registration
+│   │   ├── verification/    # Verification flow
+│   │   └── dashboard/       # Brand dashboard
+│   ├── admin/               # Admin panel
+│   │   └── brands/          # Brand management
 │   ├── api/                 # API routes
 │   │   ├── recommendations/
 │   │   └── products/
@@ -292,29 +1421,26 @@ wardro8e/
 
 ```tsx
 // components/layout/MasonryGrid.tsx
-import { useState, useEffect } from 'react';
-import Masonry from 'react-masonry-css';
-import { ProductCard } from '@/components/product/ProductCard';
-import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
+import { useState, useEffect } from "react";
+import Masonry from "react-masonry-css";
+import { ProductCard } from "@/components/product/ProductCard";
+import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 
 const breakpointColumns = {
   default: 5,
   1536: 4,
   1280: 3,
   768: 2,
-  640: 1
+  640: 1,
 };
 
 export function MasonryGrid({ initialProducts }) {
   const [products, setProducts] = useState(initialProducts);
-  const { loading, hasMore } = useInfiniteScroll(
-    loadMoreProducts,
-    products
-  );
+  const { loading, hasMore } = useInfiniteScroll(loadMoreProducts, products);
 
   async function loadMoreProducts() {
     // Fetch more products from API
-    const newProducts = await fetch('/api/products/feed');
+    const newProducts = await fetch("/api/products/feed");
     setProducts([...products, ...newProducts]);
   }
 
@@ -325,11 +1451,7 @@ export function MasonryGrid({ initialProducts }) {
       columnClassName="pl-4 bg-clip-padding"
     >
       {products.map((product) => (
-        <ProductCard 
-          key={product.id} 
-          product={product}
-          className="mb-4"
-        />
+        <ProductCard key={product.id} product={product} className="mb-4" />
       ))}
     </Masonry>
   );
@@ -340,10 +1462,10 @@ export function MasonryGrid({ initialProducts }) {
 
 ```tsx
 // components/product/ProductCard.tsx
-import Image from 'next/image';
-import { Heart, ShoppingBag, Eye } from 'lucide-react';
-import { useState } from 'react';
-import { motion } from 'framer-motion';
+import Image from "next/image";
+import { Heart, ShoppingBag, Eye } from "lucide-react";
+import { useState } from "react";
+import { motion } from "framer-motion";
 
 export function ProductCard({ product }) {
   const [isHovered, setIsHovered] = useState(false);
@@ -352,12 +1474,12 @@ export function ProductCard({ product }) {
   const handleLike = async () => {
     setIsLiked(!isLiked);
     // Track interaction in database
-    await fetch('/api/interactions', {
-      method: 'POST',
+    await fetch("/api/interactions", {
+      method: "POST",
       body: JSON.stringify({
         productId: product.id,
-        type: 'like'
-      })
+        type: "like",
+      }),
     });
   };
 
@@ -378,7 +1500,7 @@ export function ProductCard({ product }) {
           className="w-full h-auto object-cover"
           loading="lazy"
         />
-        
+
         {/* Overlay on hover */}
         {isHovered && (
           <motion.div
@@ -390,9 +1512,7 @@ export function ProductCard({ product }) {
               <h3 className="text-white font-medium text-sm">
                 {product.title}
               </h3>
-              <p className="text-white/80 text-sm">
-                ₹{product.price}
-              </p>
+              <p className="text-white/80 text-sm">₹{product.price}</p>
             </div>
           </motion.div>
         )}
@@ -403,9 +1523,9 @@ export function ProductCard({ product }) {
             onClick={handleLike}
             className="p-2 bg-white rounded-full shadow-md hover:scale-110 transition"
           >
-            <Heart 
-              size={18} 
-              className={isLiked ? 'fill-red-500 text-red-500' : ''}
+            <Heart
+              size={18}
+              className={isLiked ? "fill-red-500 text-red-500" : ""}
             />
           </button>
           <button className="p-2 bg-white rounded-full shadow-md hover:scale-110 transition">
@@ -422,16 +1542,16 @@ export function ProductCard({ product }) {
 
 ```tsx
 // app/(auth)/onboarding/page.tsx
-import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { useState } from "react";
+import { motion } from "framer-motion";
 
 const styleOptions = [
-  { id: 'minimalist', label: 'Minimalist', image: '/styles/minimalist.jpg' },
-  { id: 'bohemian', label: 'Bohemian', image: '/styles/bohemian.jpg' },
-  { id: 'streetwear', label: 'Streetwear', image: '/styles/streetwear.jpg' },
-  { id: 'classic', label: 'Classic', image: '/styles/classic.jpg' },
-  { id: 'romantic', label: 'Romantic', image: '/styles/romantic.jpg' },
-  { id: 'edgy', label: 'Edgy', image: '/styles/edgy.jpg' }
+  { id: "minimalist", label: "Minimalist", image: "/styles/minimalist.jpg" },
+  { id: "bohemian", label: "Bohemian", image: "/styles/bohemian.jpg" },
+  { id: "streetwear", label: "Streetwear", image: "/styles/streetwear.jpg" },
+  { id: "classic", label: "Classic", image: "/styles/classic.jpg" },
+  { id: "romantic", label: "Romantic", image: "/styles/romantic.jpg" },
+  { id: "edgy", label: "Edgy", image: "/styles/edgy.jpg" },
 ];
 
 export default function OnboardingPage() {
@@ -439,9 +1559,9 @@ export default function OnboardingPage() {
   const [step, setStep] = useState(1);
 
   const toggleStyle = (styleId) => {
-    setSelectedStyles(prev =>
+    setSelectedStyles((prev) =>
       prev.includes(styleId)
-        ? prev.filter(id => id !== styleId)
+        ? prev.filter((id) => id !== styleId)
         : [...prev, styleId]
     );
   };
@@ -466,14 +1586,14 @@ export default function OnboardingPage() {
                 Select your style preferences (choose at least 3)
               </h2>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {styleOptions.map(style => (
+                {styleOptions.map((style) => (
                   <motion.button
                     key={style.id}
                     onClick={() => toggleStyle(style.id)}
                     className={`relative overflow-hidden rounded-lg border-2 transition ${
                       selectedStyles.includes(style.id)
-                        ? 'border-pink-500'
-                        : 'border-gray-200'
+                        ? "border-pink-500"
+                        : "border-gray-200"
                     }`}
                     whileTap={{ scale: 0.95 }}
                   >
@@ -501,11 +1621,11 @@ export default function OnboardingPage() {
               </button>
             )}
             <button
-              onClick={() => step < 3 ? setStep(step + 1) : handleComplete()}
+              onClick={() => (step < 3 ? setStep(step + 1) : handleComplete())}
               disabled={step === 1 && selectedStyles.length < 3}
               className="px-6 py-2 bg-pink-500 text-white rounded-lg disabled:opacity-50 ml-auto"
             >
-              {step === 3 ? 'Complete' : 'Next'}
+              {step === 3 ? "Complete" : "Next"}
             </button>
           </div>
         </motion.div>
@@ -523,7 +1643,7 @@ export default function OnboardingPage() {
 
 ```typescript
 // lib/supabase/client.ts
-import { createBrowserClient } from '@supabase/ssr';
+import { createBrowserClient } from "@supabase/ssr";
 
 export function createClient() {
   return createBrowserClient(
@@ -533,12 +1653,12 @@ export function createClient() {
 }
 
 // lib/supabase/server.ts
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
 
 export function createClient() {
   const cookieStore = cookies();
-  
+
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -551,7 +1671,7 @@ export function createClient() {
           cookieStore.set({ name, value, ...options });
         },
         remove(name: string, options) {
-          cookieStore.set({ name, value: '', ...options });
+          cookieStore.set({ name, value: "", ...options });
         },
       },
     }
@@ -563,45 +1683,48 @@ export function createClient() {
 
 ```typescript
 // app/api/products/feed/route.ts
-import { createClient } from '@/lib/supabase/server';
-import { NextResponse } from 'next/server';
+import { createClient } from "@/lib/supabase/server";
+import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const page = parseInt(searchParams.get('page') || '1');
+  const page = parseInt(searchParams.get("page") || "1");
   const limit = 20;
   const offset = (page - 1) * limit;
-  
+
   const supabase = createClient();
-  
+
   // Get user preferences
-  const { data: { user } } = await supabase.auth.getUser();
-  
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   if (user) {
     // Personalized feed
-    const { data: products } = await supabase
-      .rpc('get_personalized_feed', {
-        user_id: user.id,
-        limit_count: limit,
-        offset_count: offset
-      });
-    
+    const { data: products } = await supabase.rpc("get_personalized_feed", {
+      user_id: user.id,
+      limit_count: limit,
+      offset_count: offset,
+    });
+
     return NextResponse.json({ products });
   } else {
     // Trending products for anonymous users
     const { data: products } = await supabase
-      .from('products')
-      .select(`
+      .from("products")
+      .select(
+        `
         *,
         brands (
           brand_name,
           slug
         )
-      `)
-      .eq('is_active', true)
-      .order('created_at', { ascending: false })
+      `
+      )
+      .eq("is_active", true)
+      .order("created_at", { ascending: false })
       .range(offset, offset + limit - 1);
-    
+
     return NextResponse.json({ products });
   }
 }
@@ -609,78 +1732,17 @@ export async function GET(request: Request) {
 // app/api/recommendations/route.ts
 export async function POST(request: Request) {
   const { productId } = await request.json();
-  
+
   // Call Python recommendation service
   const response = await fetch(`${process.env.PYTHON_SERVICE_URL}/similar`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ product_id: productId })
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ product_id: productId }),
   });
-  
+
   const recommendations = await response.json();
   return NextResponse.json(recommendations);
 }
-```
-
-### Supabase Functions
-
-```sql
--- Function for personalized feed
-CREATE OR REPLACE FUNCTION get_personalized_feed(
-  user_id UUID,
-  limit_count INT DEFAULT 20,
-  offset_count INT DEFAULT 0
-)
-RETURNS TABLE (
-  id UUID,
-  title VARCHAR,
-  price DECIMAL,
-  image_urls TEXT[],
-  brand_name VARCHAR,
-  score FLOAT
-) AS $$
-BEGIN
-  RETURN QUERY
-  WITH user_preferences AS (
-    -- Get user's style preferences
-    SELECT sp.style_name, sp.preference_score
-    FROM style_preferences sp
-    WHERE sp.user_id = get_personalized_feed.user_id
-  ),
-  interaction_scores AS (
-    -- Calculate product scores based on user interactions
-    SELECT 
-      p.id,
-      SUM(
-        CASE ui.interaction_type
-          WHEN 'purchase' THEN 1.0
-          WHEN 'save' THEN 0.7
-          WHEN 'like' THEN 0.5
-          WHEN 'view' THEN 0.2
-          ELSE 0
-        END
-      ) as interaction_score
-    FROM products p
-    LEFT JOIN user_interactions ui ON p.id = ui.product_id
-    WHERE ui.user_id = get_personalized_feed.user_id
-    GROUP BY p.id
-  )
-  SELECT 
-    p.id,
-    p.title,
-    p.price,
-    p.image_urls,
-    b.brand_name,
-    COALESCE(is.interaction_score, 0) + RANDOM() * 0.3 as score
-  FROM products p
-  JOIN brands b ON p.brand_id = b.id
-  LEFT JOIN interaction_scores is ON p.id = is.id
-  WHERE p.is_active = true
-  ORDER BY score DESC
-  LIMIT limit_count
-  OFFSET offset_count;
-END;
-$$ LANGUAGE plpgsql;
 ```
 
 ---
@@ -690,16 +1752,19 @@ $$ LANGUAGE plpgsql;
 ### Understanding the System (Beginner-Friendly)
 
 #### What is a Recommendation System?
+
 Think of it like a smart friend who knows your style. When you like a floral dress, it suggests similar floral patterns, same color palettes, or items from brands you've shown interest in.
 
 #### How Does It Work?
 
 1. **Image Understanding (CLIP Model)**
+
    - Takes a clothing image
    - Converts it to numbers (embeddings) that represent its features
    - Like creating a "fingerprint" for each clothing item
 
 2. **Finding Similar Items**
+
    - Compares fingerprints to find similar clothes
    - Uses "cosine similarity" (how close two fingerprints are)
 
@@ -740,10 +1805,10 @@ async def generate_embedding(image_url: str):
     try:
         # Generate embedding
         embedding = model.encode([image_url])
-        
+
         # Convert to list for JSON serialization
         embedding_list = embedding[0].tolist()
-        
+
         return {"embedding": embedding_list}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -751,29 +1816,29 @@ async def generate_embedding(image_url: str):
 @app.post("/similar-products")
 async def find_similar_products(product_id: str, limit: int = 10):
     """Find similar products based on visual similarity"""
-    
+
     # Check cache first
     cache_key = f"similar:{product_id}:{limit}"
     cached = redis_client.get(cache_key)
     if cached:
         return json.loads(cached)
-    
+
     # Get product embedding from database
     async with app.state.db.acquire() as conn:
         product = await conn.fetchrow(
             "SELECT embedding FROM products WHERE id = $1",
             product_id
         )
-        
+
         if not product:
             raise HTTPException(status_code=404, detail="Product not found")
-        
+
         # Find similar products using pgvector
         similar = await conn.fetch("""
-            SELECT 
-                id, 
-                title, 
-                price, 
+            SELECT
+                id,
+                title,
+                price,
                 image_urls,
                 1 - (embedding <=> $1) as similarity
             FROM products
@@ -781,22 +1846,22 @@ async def find_similar_products(product_id: str, limit: int = 10):
             ORDER BY embedding <=> $1
             LIMIT $3
         """, product['embedding'], product_id, limit)
-        
+
         result = [dict(row) for row in similar]
-        
+
         # Cache for 1 hour
         redis_client.setex(cache_key, 3600, json.dumps(result, default=str))
-        
+
         return result
 
 @app.post("/personalized-recommendations")
 async def get_personalized_recommendations(user_id: str, limit: int = 20):
     """Get personalized recommendations for a user"""
-    
+
     async with app.state.db.acquire() as conn:
         # Get user's interaction history
         interactions = await conn.fetch("""
-            SELECT 
+            SELECT
                 product_id,
                 interaction_type,
                 COUNT(*) as count
@@ -806,7 +1871,7 @@ async def get_personalized_recommendations(user_id: str, limit: int = 20):
             ORDER BY created_at DESC
             LIMIT 50
         """, user_id)
-        
+
         # Weight different interaction types
         weights = {
             'purchase': 1.0,
@@ -814,21 +1879,21 @@ async def get_personalized_recommendations(user_id: str, limit: int = 20):
             'like': 0.5,
             'view': 0.2
         }
-        
+
         # Calculate product scores
         product_scores = {}
         for interaction in interactions:
             score = weights.get(interaction['interaction_type'], 0)
             product_scores[interaction['product_id']] = score * interaction['count']
-        
+
         # Get embeddings for top interacted products
         top_products = sorted(product_scores.items(), key=lambda x: x[1], reverse=True)[:5]
-        
+
         recommendations = []
         for product_id, _ in top_products:
             similar = await find_similar_products(product_id, limit=5)
             recommendations.extend(similar)
-        
+
         # Remove duplicates and sort by similarity
         seen = set()
         unique_recommendations = []
@@ -836,7 +1901,7 @@ async def get_personalized_recommendations(user_id: str, limit: int = 20):
             if rec['id'] not in seen:
                 seen.add(rec['id'])
                 unique_recommendations.append(rec)
-        
+
         return unique_recommendations[:limit]
 ```
 
@@ -844,7 +1909,7 @@ async def get_personalized_recommendations(user_id: str, limit: int = 20):
 
 ```yaml
 # docker-compose.yml for local development
-version: '3.8'
+version: "3.8"
 
 services:
   postgres:
@@ -885,9 +1950,11 @@ volumes:
 ### Market Positioning
 
 #### Unique Value Proposition
+
 "Discover Your Style, Not Just Clothes" - wardro8e is the fashion discovery platform that understands your unique style and connects you with emerging designers you'll love.
 
 #### Competitive Advantages
+
 1. **AI-Powered Discovery** vs traditional category browsing
 2. **Emerging Brand Focus** vs mass market products
 3. **Visual-First Interface** vs text-heavy listings
@@ -898,10 +1965,12 @@ volumes:
 #### Primary Revenue Streams
 
 1. **Commission on Sales** (15-18% initially)
+
    - Tiered structure based on volume
    - Lower rates for exclusive partnerships
 
 2. **Premium Brand Placements** (₹50,000-₹2,00,000/month)
+
    - Featured collections
    - Homepage placement
    - Boosted visibility in feeds
@@ -911,6 +1980,7 @@ volumes:
    - Benefits: Early access, exclusive sales, free shipping
 
 #### Unit Economics (Per Transaction)
+
 ```
 Average Order Value (AOV): ₹2,500
 Commission Rate: 16%
@@ -958,27 +2028,12 @@ Founder, wardro8e
 P.S. Check out our brand deck at wardro8e.com/partners
 ```
 
-#### Partnership Tiers
-
-**Tier 1: Founding Partners (First 10 brands)**
-- 0% commission for 3 months, then 10%
-- Homepage featured placement
-- Co-marketing opportunities
-
-**Tier 2: Early Partners (11-50 brands)**
-- 12% commission rate
-- Category page features
-- Monthly performance reviews
-
-**Tier 3: Standard Partners (51+ brands)**
-- 15-18% commission based on performance
-- Standard placement
-- Quarterly reviews
-
 ### Customer Acquisition Strategy
 
 #### Phase 1: Pre-Launch (Month 1)
+
 1. **Instagram Presence**
+
    - Daily style inspiration posts
    - Behind-the-scenes content
    - Fashion tips and trends
@@ -989,13 +2044,10 @@ P.S. Check out our brand deck at wardro8e.com/partners
    - Focus on fashion/lifestyle niche
    - Barter collaborations initially
 
-3. **Content Marketing**
-   - SEO-optimized blog posts
-   - "Style Guide" downloadables
-   - Email list building
-
 #### Phase 2: Soft Launch (Months 2-3)
+
 1. **Beta User Program**
+
    - 500 invited users
    - Exclusive early access
    - Feedback incentives
@@ -1004,20 +2056,12 @@ P.S. Check out our brand deck at wardro8e.com/partners
    - ₹200 credit for referrer and referee
    - Tiered rewards for multiple referrals
 
-3. **PR Outreach**
-   - Fashion blogs and magazines
-   - Startup media coverage
-
 #### Phase 3: Public Launch (Month 4+)
+
 1. **Performance Marketing**
    - Google Ads: ₹50,000/month budget
    - Meta Ads: ₹75,000/month budget
    - Target CAC: ₹150
-
-2. **Partnerships**
-   - Fashion events and pop-ups
-   - College fashion shows
-   - Style workshops
 
 ---
 
@@ -1026,6 +2070,7 @@ P.S. Check out our brand deck at wardro8e.com/partners
 ### Content Calendar Structure
 
 #### Monthly Themes
+
 - **January**: New Year, New Wardrobe
 - **February**: Valentine's & Date Night Styles
 - **March**: Spring Refresh
@@ -1039,129 +2084,23 @@ P.S. Check out our brand deck at wardro8e.com/partners
 - **November**: Wedding Season
 - **December**: Year-End Party Looks
 
-### Weekly Content Schedule
-
-#### Monday - "Brand Spotlight"
-- Feature one partner brand
-- Behind-the-scenes content
-- Designer interviews
-- Exclusive collections
-
-#### Tuesday - "Style Tips"
-- How-to style guides
-- Trend reports
-- Celebrity style breakdowns
-- Outfit formulas
-
-#### Wednesday - "wardro8e Picks"
-- Curated collections
-- Editor's choices
-- Trending products
-- User favorites
-
-#### Thursday - "Sustainable Thursday"
-- Eco-friendly brands
-- Sustainable fashion tips
-- Upcycling ideas
-- Conscious shopping guides
-
-#### Friday - "Friday Finds"
-- New arrivals
-- Weekend outfit ideas
-- Sale alerts
-- Limited editions
-
-#### Saturday - "Style Challenge"
-- User-generated content
-- Styling competitions
-- Hashtag campaigns
-- Community features
-
-#### Sunday - "Sunday Stories"
-- Fashion history
-- Brand stories
-- Cultural fashion
-- Inspiration posts
-
-### Social Media Strategy
-
-#### Instagram (Primary Channel)
-**Content Mix:**
-- 40% Product features
-- 25% User-generated content
-- 20% Educational/Tips
-- 15% Behind-the-scenes
-
-**Posting Schedule:**
-- Feed: 1-2 posts daily
-- Stories: 3-5 daily
-- Reels: 3-4 weekly
-- IGTV: 1 weekly
-
-**Hashtag Strategy:**
-```
-#wardro8eStyle #DiscoverYourStyle #IndianFashion
-#EmergingDesigners #SustainableFashionIndia
-#PinterestStyle #FashionDiscovery #Style[City]
-```
-
-#### Pinterest
-- Create 10-15 boards by style category
-- Pin 15-20 times daily
-- 80% partner products, 20% inspiration
-- SEO-optimized descriptions
-
-#### YouTube
-- Weekly style videos
-- Brand documentaries
-- Fashion hauls
-- Styling tutorials
-
-### Email Marketing
-
-#### Welcome Series (5 emails)
-1. **Welcome & Style Quiz** (Day 0)
-2. **Your Personalized Picks** (Day 2)
-3. **Meet Our Brands** (Day 4)
-4. **Styling Tips for Your Style** (Day 7)
-5. **Exclusive First Purchase Offer** (Day 10)
-
-#### Regular Campaigns
-- **Monday**: New Arrivals
-- **Wednesday**: Style Guide
-- **Friday**: Weekend Sales
-- **Sunday**: Curated Collections
-
 ### SEO Strategy
 
 #### Target Keywords
+
 **Primary:**
+
 - "pinterest style fashion india"
 - "discover fashion brands india"
 - "personalized fashion shopping"
 - "emerging indian designers"
 
 **Long-tail:**
+
 - "sustainable fashion brands india online"
 - "boutique clothing online india"
 - "ai fashion recommendations india"
 - "curated fashion marketplace"
-
-#### Content Topics
-1. **Style Guides**
-   - "How to Build a Capsule Wardrobe in India"
-   - "Monsoon Fashion: 10 Must-Have Pieces"
-   - "Wedding Guest Outfit Ideas Under ₹5000"
-
-2. **Brand Stories**
-   - "10 Emerging Indian Designers to Watch"
-   - "Sustainable Fashion Brands Making a Difference"
-   - "Behind the Seams: [Brand] Story"
-
-3. **Trend Reports**
-   - "2025 Fashion Trends: India Edition"
-   - "Street Style Report: Mumbai Fashion Week"
-   - "Color Trends for Indian Skin Tones"
 
 ---
 
@@ -1170,11 +2109,14 @@ P.S. Check out our brand deck at wardro8e.com/partners
 ### 📱 Instagram Reels Ideas (30-60 seconds)
 
 #### Behind-the-Scenes Content
+
 1. **"Day in the Life of a Fashion Tech Founder"**
+
    - Morning routine → Code review → Brand meetings → Late night shipping
    - Hook: "POV: You're building the Pinterest of Indian fashion"
 
 2. **"Building wardro8e in Public"**
+
    - Weekly progress updates showing actual metrics
    - Dashboard screenshots, user growth, new features
    - Hook: "Week 12 of building my startup in public"
@@ -1184,55 +2126,24 @@ P.S. Check out our brand deck at wardro8e.com/partners
    - Show the journey from IDE to live feature
    - Hook: "Watch this code become a shopping experience"
 
-4. **"Startup Reality Check"**
-   - Expectation vs Reality format
-   - Glamorous startup life vs actual late nights debugging
-   - Hook: "What they don't tell you about fashion tech"
-
 #### Educational/Value Content
-5. **"AI Explains Your Style"**
+
+4. **"AI Explains Your Style"**
+
    - Show how the AI analyzes a product
    - Visual representation of style matching
    - Hook: "How AI understands your fashion taste in 3 seconds"
 
-6. **"₹500 vs ₹5000 Outfit Challenge"**
+5. **"₹500 vs ₹5000 Outfit Challenge"**
    - Using wardro8e to create looks at different price points
    - Hook: "Can AI help you look expensive on a budget?"
-
-7. **"Style Personality Test"**
-   - Quick visual quiz revealing style type
-   - Hook: "Tell me your style in 3 choices"
-
-8. **"Fashion Founders Series"**
-   - 60-second interview with partner brands
-   - Their story, inspiration, one wardro8e find
-   - Hook: "Meet the 23-year-old disrupting Indian fashion"
-
-#### Trending/Engaging Formats
-9. **"Rating Your Style Boards"**
-   - React to user-created collections
-   - Provide styling tips
-   - Hook: "Rating your wardro8e collections (honest opinions)"
-
-10. **"Fashion Tech Speedrun"**
-    - How fast can you find the perfect outfit using AI?
-    - Time challenge format
-    - Hook: "Finding the perfect outfit in under 30 seconds"
-
-11. **"Small Brand, Big Impact"**
-    - Transformation stories of brands on platform
-    - Before/after joining wardro8e
-    - Hook: "This brand went from 0 to ₹10L in 60 days"
-
-12. **"Decoding Fashion Algorithms"**
-    - Simple explanation of recommendation system
-    - Use props/visual aids
-    - Hook: "How Netflix but for fashion works"
 
 ### 📸 Instagram Post Ideas
 
 #### Founder's Journey Posts
+
 1. **"The Rejection Collection"**
+
    - Carousel of rejection emails from investors/brands
    - Last slide: Current success metrics
    - Caption: Story of persistence
@@ -1241,223 +2152,25 @@ P.S. Check out our brand deck at wardro8e.com/partners
    - Late night coding setup aesthetic shot
    - Caption: "3 AM. 47 bugs fixed. 2 features shipped. Building dreams requires losing sleep sometimes."
 
-3. **"First Sale Celebration"**
-   - Screenshot of first transaction
-   - Caption: Emotional founder story about the moment
-
-4. **"Team Growth Timeline"**
-   - Then vs Now photos (solo laptop → team workspace)
-   - Caption: Journey from solopreneur to team
-
-#### Educational Carousels
-5. **"10 Slides to Understand Fashion Tech"**
-   - Simple infographics explaining the industry
-   - Your position in the market
-   - Future of fashion shopping
-
-6. **"Why We Built wardro8e"**
-   - Problem slides → Solution slides → Impact slides
-   - Statistics about choice overload in fashion
-
-7. **"How to Build Your Personal Style DNA"**
-   - Step-by-step guide using wardro8e
-   - Actionable tips for each style type
-
-8. **"The Cost of Fast Fashion vs Curated Fashion"**
-   - Data visualization comparing both
-   - Environmental and economic impact
-
-#### Community Spotlights
-9. **"User of the Week"**
-   - Feature a user's style transformation
-   - Their collections, favorite finds
-   - Tagged collaboration post
-
-10. **"Brand Spotlight Sunday"**
-    - Deep dive into one partner brand
-    - Their story, bestsellers, founder quote
-    - Cross-promotion opportunity
-
-#### Data & Insights
-11. **"wardro8e Wrapped" (Monthly)**
-    - Top trending styles
-    - Most-loved brands
-    - User statistics in beautiful infographics
-
-12. **"State of Indian Fashion" (Quarterly)**
-    - Data from your platform
-    - Insights about shopping behavior
-    - Predictions for upcoming trends
-
 ### 📝 Blog Content Ideas
 
 #### Founder's Perspective Series
+
 1. **"Why I Left My Corporate Job to Build Fashion Tech"**
+
    - Personal story
    - Challenges faced
    - Vision for Indian fashion industry
-   - Lessons learned
 
 2. **"Building in Public: Our First 100 Days"**
    - Daily challenges and wins
    - Metrics transparency
    - Key decisions and pivots
-   - Community feedback integration
 
-3. **"Dear Fashion Industry: We Need to Talk About Discovery"**
-   - Problem statement
-   - Current market failures
-   - wardro8e's solution
-   - Call to action for brands
-
-4. **"The Unglamorous Side of Fashion Tech"**
-   - Backend complexities
-   - AI training challenges
-   - Inventory management realities
-   - Truth about startup life
-
-#### Technical Deep Dives
-5. **"How We Built a Recommendation Engine in 30 Days"**
-   - Technical walkthrough
-   - Challenges and solutions
-   - Open-source contributions
-   - Performance metrics
-
-6. **"The Pinterest-fication of Indian E-commerce"**
-   - UX design decisions
-   - A/B testing results
-   - User behavior analysis
-   - Future of visual commerce
-
-7. **"From 0 to 50,000 Users: Our Growth Playbook"**
-   - Marketing strategies that worked
-   - Failed experiments
-   - Cost breakdowns
-   - Actionable tips for founders
-
-#### Industry Insights
-8. **"The ₹100 Billion Opportunity in Indian Fashion"**
-   - Market analysis
-   - Untapped segments
-   - Technology adoption
-   - Future predictions
-
-9. **"Why Emerging Brands Fail (And How We're Fixing It)"**
-   - Common pitfalls
-   - Platform solutions
-   - Success stories
-   - Brand toolkit
-
-10. **"The Rise of Conscious Fashion in India"**
-    - Sustainability trends
-    - Consumer behavior shifts
-    - Platform's role
-    - Partner brand stories
-
-#### Community Stories
-11. **"How 10 Women Built Their Dream Wardrobe on wardro8e"**
-    - User case studies
-    - Before/after stories
-    - Style evolution
-    - Tips and testimonials
-
-12. **"From Instagram to Income: Brand Success Stories"**
-    - Partner brand journeys
-    - Sales growth data
-    - Platform features that helped
-    - Advice for new brands
-
-### 🎬 YouTube Content Strategy
-
-#### Long-form Content (10-20 minutes)
-1. **"Building a Startup: Monthly Documentary"**
-   - Behind-the-scenes footage
-   - Team meetings, coding sessions
-   - Brand partnerships, user interviews
-   - Raw, authentic storytelling
-
-2. **"Fashion Tech Explained" Series**
-   - Episode 1: How AI Understands Fashion
-   - Episode 2: Building Pinterest for India
-   - Episode 3: The Economics of Fashion Marketplaces
-   - Episode 4: Future of Fashion Discovery
-
-3. **"Founder Interviews" Series**
-   - Interview partner brand founders
-   - Their story, challenges, advice
-   - Tour of their workspace/studio
-   - Live styling session
-
-4. **"Code with Me: Building wardro8e Features"**
-   - Live coding sessions
-   - Building actual features
-   - Explaining technical decisions
-   - Q&A with viewers
-
-#### Shorts (Under 60 seconds)
-1. **"Startup Metrics Monday"**
-   - Weekly metrics update
-   - Growth charts visualization
-   - Quick wins and challenges
-
-2. **"Fashion Fact Friday"**
-   - Quick fashion industry insights
-   - Surprising statistics
-   - Trend predictions
-
-3. **"Tech Tip Tuesday"**
-   - Quick coding tips
-   - Fashion tech tools
-   - Productivity hacks
-
-### 📧 Newsletter Content
-
-#### Weekly Sections
-1. **"Founder's Note"**
-   - Personal reflection on the week
-   - Key learning or challenge
-   - Ask for community input
-
-2. **"Behind the Code"**
-   - Technical feature spotlight
-   - How it was built
-   - Impact on user experience
-
-3. **"Brand of the Week"**
-   - Featured partner story
-   - Exclusive discount for subscribers
-   - Styling tips
-
-4. **"Community Spotlight"**
-   - User success story
-   - Best collections of the week
-   - Style challenges
-
-5. **"Metrics That Matter"**
-   - Transparent growth numbers
-   - What's working, what's not
-   - Next week's focus
-
-### 🎙️ Podcast Ideas
-
-#### "The wardro8e Diaries" Podcast
-1. **Episode Topics:**
-   - "From Idea to MVP in 90 Days"
-   - "Convincing Brands to Join a Nobody"
-   - "When the Servers Crashed on Launch Day"
-   - "Our First ₹1 Crore Month"
-   - "Building Tech for Non-Tech Users"
-   - "The Future of Fashion is Already Here"
-
-2. **Guest Episodes:**
-   - Fashion designers using the platform
-   - Tech leaders in e-commerce
-   - Successful users sharing their journey
-   - Investors' perspective on fashion tech
-
-### 📊 Progress Update Templates
+### Progress Update Templates
 
 #### Weekly LinkedIn Updates
+
 ```
 Week [X] of Building wardro8e 🚀
 
@@ -1470,90 +2183,20 @@ Numbers:
 Wins:
 ✅ [Major feature shipped]
 ✅ [Partnership closed]
-✅ [Milestone reached]
-
-Challenges:
-🔧 [Technical challenge faced]
-📚 Learning: [What you learned]
 
 This week's focus: [Upcoming priority]
 
-What fashion discovery problem should we solve next?
-
-#BuildingInPublic #StartupLife #FashionTech #IndianStartup
+#BuildingInPublic #StartupLife #FashionTech
 ```
-
-#### Monthly Investor Updates
-```
-Subject: wardro8e - [Month] Update
-
-Metrics:
-- MRR: ₹[X] ([Y]% MoM growth)
-- Active Users: [X]
-- Brands: [X]
-- Burn Rate: ₹[X]
-- Runway: [X] months
-
-Highlights:
-1. [Major achievement]
-2. [Key partnership]
-3. [Product milestone]
-
-Challenges:
-1. [Main challenge] - [Solution implemented]
-2. [Secondary challenge] - [Action plan]
-
-Asks:
-1. [Specific introduction request]
-2. [Expertise needed]
-3. [Resource requirement]
-
-Looking Ahead:
-- [Next month's primary goal]
-- [Key metric to improve]
-
-[Include graph/chart of key metric]
-```
-
-### 🎯 Content Production Schedule
-
-#### Daily Content Calendar
-**Monday:** Metrics Monday (Progress update)
-**Tuesday:** Tech Tuesday (Behind-the-scenes development)
-**Wednesday:** wardro8e Wednesday (Feature spotlight)
-**Thursday:** Thoughtful Thursday (Industry insights)
-**Friday:** Fashion Friday (Style tips/Brand features)
-**Saturday:** Story Saturday (User/Founder stories)
-**Sunday:** Sunday Spotlight (Community features)
-
-#### Content Batching Strategy
-- **Week 1 of Month:** Film all reels
-- **Week 2 of Month:** Write blog posts
-- **Week 3 of Month:** Create carousels and graphics
-- **Week 4 of Month:** Plan next month's content
-
-#### Engagement Tactics
-1. **"Ask Me Anything" Sessions**
-   - Weekly Instagram Live
-   - Technical and business questions
-   - Feature requests discussion
-
-2. **"Build in Public" Challenges**
-   - 30-day building challenge
-   - Daily updates on specific feature
-   - Community voting on priorities
-
-3. **"Style Challenges"**
-   - Weekly styling challenges
-   - User-generated content
-   - Prizes from partner brands
 
 ---
 
 ## Development Roadmap
 
 ### Month 1: Foundation
+
 **Week 1-2: Setup & Architecture**
+
 - [ ] Initialize Next.js project with TypeScript
 - [ ] Set up Supabase project and database
 - [ ] Configure authentication flow
@@ -1561,6 +2204,7 @@ Looking Ahead:
 - [ ] Set up development environment
 
 **Week 3-4: Core Features**
+
 - [ ] Build masonry grid layout
 - [ ] Implement product card components
 - [ ] Create basic navigation
@@ -1568,7 +2212,9 @@ Looking Ahead:
 - [ ] Build product detail pages
 
 ### Month 2: User Experience
+
 **Week 5-6: User Features**
+
 - [ ] Implement user registration/login
 - [ ] Build onboarding flow
 - [ ] Create user profile pages
@@ -1576,6 +2222,7 @@ Looking Ahead:
 - [ ] Build collections feature
 
 **Week 7-8: Discovery Features**
+
 - [ ] Implement search functionality
 - [ ] Add category filters
 - [ ] Build sorting options
@@ -1583,7 +2230,9 @@ Looking Ahead:
 - [ ] Add infinite scroll
 
 ### Month 3: AI & Personalization
+
 **Week 9-10: Recommendation System**
+
 - [ ] Set up Python FastAPI service
 - [ ] Implement CLIP model integration
 - [ ] Build similarity search
@@ -1591,14 +2240,17 @@ Looking Ahead:
 - [ ] Add "Similar Items" feature
 
 **Week 11-12: Brand Tools**
+
+- [ ] Build brand registration flow
+- [ ] Create document upload interface
+- [ ] Implement verification system
+- [ ] Add admin review dashboard
 - [ ] Build brand dashboard
-- [ ] Create product upload interface
-- [ ] Implement inventory management
-- [ ] Add analytics dashboard
-- [ ] Build order management
 
 ### Month 4: Commerce Features
+
 **Week 13-14: Shopping Cart**
+
 - [ ] Implement cart functionality
 - [ ] Build checkout flow
 - [ ] Integrate Razorpay/Stripe
@@ -1606,14 +2258,17 @@ Looking Ahead:
 - [ ] Create order confirmation
 
 **Week 15-16: Order Management**
+
 - [ ] Build order tracking
 - [ ] Implement email notifications
 - [ ] Create returns/refunds flow
 - [ ] Add invoice generation
-- [ ] Build admin dashboard
+- [ ] Build analytics dashboard
 
 ### Month 5: Optimization
+
 **Week 17-18: Performance**
+
 - [ ] Implement caching strategies
 - [ ] Optimize database queries
 - [ ] Add CDN for static assets
@@ -1621,6 +2276,7 @@ Looking Ahead:
 - [ ] Optimize bundle size
 
 **Week 19-20: Mobile Experience**
+
 - [ ] PWA implementation
 - [ ] Mobile-specific optimizations
 - [ ] Touch gestures
@@ -1628,7 +2284,9 @@ Looking Ahead:
 - [ ] Push notifications
 
 ### Month 6: Launch Preparation
+
 **Week 21-22: Testing & QA**
+
 - [ ] Comprehensive testing
 - [ ] Load testing
 - [ ] Security audit
@@ -1636,6 +2294,7 @@ Looking Ahead:
 - [ ] Performance monitoring
 
 **Week 23-24: Launch**
+
 - [ ] Production deployment
 - [ ] Marketing campaign launch
 - [ ] Press release
@@ -1647,6 +2306,7 @@ Looking Ahead:
 ## Getting Started
 
 ### Prerequisites
+
 - Node.js 18+ and npm/yarn
 - Git
 - Supabase account
@@ -1696,21 +2356,16 @@ npm run format       # Format code with Prettier
 # Testing
 npm run test         # Run tests
 npm run test:e2e     # Run E2E tests
-npm run test:coverage # Generate coverage report
 
 # Production
 npm run build        # Build for production
 npm run start        # Start production server
-
-# Database
-npm run db:migrate   # Run migrations
-npm run db:seed      # Seed sample data
-npm run db:reset     # Reset database
 ```
 
 ### Deployment
 
 #### Vercel Deployment
+
 ```bash
 # Install Vercel CLI
 npm i -g vercel
@@ -1721,66 +2376,24 @@ vercel
 # Follow prompts to configure project
 ```
 
-#### Python Service Deployment (Railway)
-```bash
-# In recommendation_service directory
-railway login
-railway init
-railway up
-```
-
 ---
 
 ## Support & Resources
 
 ### Documentation
+
 - [Next.js Documentation](https://nextjs.org/docs)
 - [Supabase Documentation](https://supabase.com/docs)
 - [Tailwind CSS](https://tailwindcss.com/docs)
-- [CLIP Model Guide](https://github.com/openai/CLIP)
 
 ### Community
 - Discord: [Join our community](https://discord.gg/wardro8e)
 - GitHub Issues: [Report bugs](https://github.com/yourusername/wardro8e/issues)
 - Email: support@wardro8e.com
 
-### Contributing
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
-
 ### License
+
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-## Appendix: Key Metrics to Track
-
-### User Metrics
-- **Daily Active Users (DAU)**
-- **Monthly Active Users (MAU)**
-- **User Retention** (Day 1, 7, 30)
-- **Session Duration**
-- **Pages per Session**
-
-### Business Metrics
-- **Gross Merchandise Value (GMV)**
-- **Average Order Value (AOV)**
-- **Conversion Rate**
-- **Customer Acquisition Cost (CAC)**
-- **Customer Lifetime Value (CLV)**
-
-### Platform Metrics
-- **Number of Brands**
-- **Number of Products**
-- **Recommendation Click-through Rate**
-- **Search-to-Purchase Rate**
-- **Cart Abandonment Rate**
-
-### Technical Metrics
-- **Page Load Time**
-- **API Response Time**
-- **Error Rate**
-- **Uptime**
-- **Database Query Performance**
 
 ---
 
