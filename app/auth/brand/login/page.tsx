@@ -37,6 +37,10 @@ export default function BrandLoginPage() {
         const j = await res.json().catch(() => ({}));
         throw new Error(j.message || 'Invalid credentials');
       }
+      const j = await res.json();
+      if (j?.access_token && j?.refresh_token) {
+        await supabase.auth.setSession({ access_token: j.access_token, refresh_token: j.refresh_token });
+      }
       window.location.href = '/dashboard';
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Login failed');

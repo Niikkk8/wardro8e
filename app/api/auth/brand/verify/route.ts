@@ -67,6 +67,7 @@ export async function POST(req: NextRequest) {
       user_metadata: {
         full_name: brandName.trim(),
         brand_name: brandName.trim(),
+        role: 'brand',
       }
     });
     if (signUpErr) {

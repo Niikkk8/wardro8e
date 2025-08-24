@@ -14,7 +14,7 @@ export interface PendingBrandSignup {
 
 interface AuthContextType {
   pendingSignup: PendingBrandSignup | null;
-  setPendingSignup: (signup: PendingBrandSignup | null) => void;
+  setPendingSignup: (signup: PendingBrandSignup | null) => Promise<void>;
   clearExpiredSignup: () => void;
   isOTPExpired: () => boolean;
   sessionKey: string;

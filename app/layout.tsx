@@ -3,8 +3,8 @@ import { Montserrat, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import StoreProvider from "@/app/StoreProvider";
+import RouteAwareChrome from "@/components/RouteAwareChrome";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -57,11 +57,13 @@ export default function RootLayout({
       <body className="font-sans antialiased">
         <ThemeProvider>
           <AuthProvider>
-            <div className="min-h-screen bg-background text-foreground">
-              <Navbar />
-              <main>{children}</main>
-              <Footer />
-            </div>
+            <StoreProvider>
+              <div className="min-h-screen bg-background text-foreground">
+                <RouteAwareChrome>
+                  <main>{children}</main>
+                </RouteAwareChrome>
+              </div>
+            </StoreProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>
