@@ -3,11 +3,9 @@ import { getSupabaseAdmin } from "@/lib/supabase";
 
 export async function GET(req: NextRequest) {
   try {
-    // Prefer Authorization header, fallback to httpOnly cookie set on login
+    // Use Authorization header from Supabase client session
     const authHeader = req.headers.get("authorization") || req.headers.get("Authorization");
-    const bearer = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : undefined;
-    const cookieToken = req.cookies.get("auth-token")?.value;
-    const accessToken = bearer || cookieToken;
+    const accessToken = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : undefined;
 
     if (!accessToken) {
       return NextResponse.json({ userId: null, email: null, role: null }, { status: 200 });

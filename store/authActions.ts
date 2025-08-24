@@ -1,10 +1,10 @@
 import { AppDispatch } from './index';
-import { setUser, clearUser } from './authSlice';
+import { clearUser } from './authSlice';
 import { supabase } from '@/lib/supabase';
 
-export const login = (email: string, password: string) => async (dispatch: AppDispatch) => {
+export const login = (email: string, password: string) => async (_dispatch: AppDispatch) => {
   console.log('authActions: Starting login for:', email);
-  
+
   const response = await fetch('/api/auth/brand/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -16,33 +16,26 @@ export const login = (email: string, password: string) => async (dispatch: AppDi
     throw new Error(error.message);
   }
 
-  console.log('authActions: Login API successful, fetching user data...');
+  const data = await response.json();
+  const accessToken: string | undefined = data?.access_token;
+  const refreshToken: string | undefined = data?.refresh_token;
 
-  // Fetch updated user data after login
-  const userResponse = await fetch('/api/auth/me', {
-    credentials: 'include',
-  });
-
-  if (userResponse.ok) {
-    const data = await userResponse.json();
-    console.log('authActions: User data received:', data);
-    
-    if (data.userId && data.email) {
-      console.log('authActions: Setting user in store:', data);
-      dispatch(setUser({
-        id: data.userId,
-        email: data.email,
-        role: data.role,
-      }));
-    }
-  } else {
-    console.error('authActions: Failed to fetch user data after login');
+  if (!accessToken || !refreshToken) {
+    throw new Error('Login succeeded but session tokens are missing');
   }
+
+  // Persist Supabase session on the client so it survives reloads
+  const { error: setErr } = await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
+  if (setErr) {
+    console.error('authActions: Failed to set Supabase session', setErr);
+    throw setErr;
+  }
+
+  console.log('authActions: Supabase session set; StoreProvider subscription will hydrate user');
 };
 
 export const logout = () => async (dispatch: AppDispatch) => {
   try {
-    await fetch('/api/auth/brand/login', { method: 'DELETE' });
     await supabase.auth.signOut();
   } catch (error) {
     console.error('Logout failed:', error);
@@ -53,24 +46,28 @@ export const logout = () => async (dispatch: AppDispatch) => {
 
 export const refreshAuth = () => async (dispatch: AppDispatch) => {
   try {
+    const { data: sessionRes } = await supabase.auth.getSession();
+    const token = sessionRes.session?.access_token;
+
+    if (!token) {
+      dispatch(clearUser());
+      return;
+    }
+
     const response = await fetch('/api/auth/me', {
-      credentials: 'include',
+      headers: { Authorization: `Bearer ${token}` },
     });
-    
-    if (response.ok) {
-      const data = await response.json();
-      if (data.userId && data.email) {
-        dispatch(setUser({
-          id: data.userId,
-          email: data.email,
-          role: data.role,
-        }));
-      } else {
-        dispatch(clearUser());
-      }
-    } else {
+
+    if (!response.ok) {
+      dispatch(clearUser());
+      return;
+    }
+
+    const data = await response.json();
+    if (!data?.userId) {
       dispatch(clearUser());
     }
+    // Note: user state will be hydrated by StoreProvider subscription as well
   } catch (error) {
     console.error('Failed to refresh auth:', error);
     dispatch(clearUser());

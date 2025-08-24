@@ -4,7 +4,14 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 // Browser/client Supabase (anon key only)
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Explicitly enable persistent sessions and auto refresh so sessions survive reloads
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+  },
+});
 
 // Server-only Admin client factory. Never expose the service role key to the client.
 export function getSupabaseAdmin() {
