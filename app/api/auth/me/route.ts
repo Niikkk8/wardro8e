@@ -32,7 +32,8 @@ export async function GET(req: NextRequest) {
     const role = brandErr ? null : brandRow ? "brand" : "user";
 
     return NextResponse.json({ userId, email, role }, { status: 200 });
-  } catch (e) {
+  } catch (error) {
+    console.error(error);
     return NextResponse.json({ userId: null, email: null, role: null }, { status: 200 });
   }
 }

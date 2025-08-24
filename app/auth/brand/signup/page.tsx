@@ -15,13 +15,13 @@ import {
   Mail, Building2, FileText, CheckCircle, AlertCircle, ArrowLeft, 
   Loader2, RotateCcw, Eye, EyeOff
 } from "lucide-react";
-
+import { RootState } from "@/store";
 type Step = "form" | "otp" | "success";
 
 export default function BrandSignupPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const { pendingSignup } = useAppSelector((state: any) => state.auth);
+  const { pendingSignup } = useAppSelector((state: RootState) => state.auth);
 
   const [step, setStep] = useState<Step>("form");
   const [formData, setFormData] = useState<SignupForm>({

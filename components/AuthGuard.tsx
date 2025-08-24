@@ -4,7 +4,7 @@ import React from "react";
 import { useRouter } from "next/navigation";
 import { useAppSelector } from "@/store/hooks";
 import { Loader2 } from "lucide-react";
-
+import { RootState } from "@/store";
 interface AuthGuardProps {
   children: React.ReactNode;
   requireRole?: 'brand' | 'user';
@@ -12,7 +12,7 @@ interface AuthGuardProps {
 }
 
 export default function AuthGuard({ children, requireRole, redirectTo = '/auth' }: AuthGuardProps) {
-  const { user, loading } = useAppSelector((state: any) => state.auth);
+  const { user, loading } = useAppSelector((state: RootState) => state.auth);
   const router = useRouter();
 
   // Show loading spinner while checking auth status

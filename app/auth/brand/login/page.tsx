@@ -1,21 +1,18 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Mail, Lock, Eye, EyeOff, AlertCircle, ArrowLeft, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useRouter } from "next/navigation";
-import { useAppSelector, useAppDispatch } from "@/store/hooks";
+import { useAppDispatch } from "@/store/hooks";
 import { login } from "@/store/authActions";
 import { validateEmail } from "@/lib/validators";
 
 export default function BrandLoginPage() {
-  const router = useRouter();
   const dispatch = useAppDispatch();
-  const { user, loading } = useAppSelector((state: any) => state.auth);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [show, setShow] = useState(false);

@@ -3,15 +3,12 @@
 import React, { useEffect, useRef } from "react";
 import { Provider } from "react-redux";
 import { makeStore } from "@/store";
-import { usePathname, useRouter } from "next/navigation";
-import { setUser, setLoading, clearUser, loadPendingSignup } from "@/store/authSlice";
+import { setUser, clearUser, loadPendingSignup } from "@/store/authSlice";
 import { supabase } from "@/lib/supabase";
 
 const storeSingleton = makeStore();
 
 export default function StoreProvider({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
-  const pathname = usePathname();
   const initialized = useRef(false);
 
   useEffect(() => {
