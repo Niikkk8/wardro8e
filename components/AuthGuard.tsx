@@ -8,10 +8,11 @@ import { RootState } from "@/store";
 interface AuthGuardProps {
   children: React.ReactNode;
   requireRole?: 'brand' | 'user';
+  requireVerified?: boolean;
   redirectTo?: string;
 }
 
-export default function AuthGuard({ children, requireRole, redirectTo = '/auth' }: AuthGuardProps) {
+export default function AuthGuard({ children, requireRole, requireVerified = false, redirectTo = '/auth' }: AuthGuardProps) {
   const { user, loading } = useAppSelector((state: RootState) => state.auth);
   const router = useRouter();
 
@@ -35,8 +36,23 @@ export default function AuthGuard({ children, requireRole, redirectTo = '/auth' 
 
   // Check role requirement if specified
   if (requireRole && user.role !== requireRole) {
-    router.replace('/auth');
+    // Redirect based on user type
+    if (user.role === 'brand') {
+      router.replace('/dashboard');
+    } else if (user.role === 'user') {
+      router.replace('/for-shoppers');
+    } else {
+      router.replace('/auth');
+    }
     return null;
+  }
+
+  // Check verification requirement for brands only
+  if (requireVerified && user.role === 'brand') {
+    if (!user.verified) {
+      router.replace('/dashboard/verification');
+      return null;
+    }
   }
 
   return <>{children}</>;

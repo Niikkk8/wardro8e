@@ -6,6 +6,9 @@ export interface User {
   id: string;
   email: string;
   role: UserRole;
+  brandName?: string;
+  brandLegalName?: string;
+  verified?: boolean;
 }
 
 export interface PendingSignup {
@@ -44,6 +47,13 @@ export const authSlice = createSlice({
       state.user = null;
       state.loading = false;
     },
+    setBrand: (state, action: PayloadAction<{ brandName: string; brandLegalName: string; verified: boolean }>) => {
+      if (state.user) {
+        state.user.brandName = action.payload.brandName;
+        state.user.brandLegalName = action.payload.brandLegalName;
+        state.user.verified = action.payload.verified;
+      }
+    },
     setPendingSignup: (state, action: PayloadAction<PendingSignup | null>) => {
       state.pendingSignup = action.payload;
       
@@ -76,6 +86,7 @@ export const {
   setUser, 
   setLoading, 
   clearUser, 
+  setBrand,
   setPendingSignup, 
   loadPendingSignup 
 } = authSlice.actions;

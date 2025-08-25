@@ -6,13 +6,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useAppSelector, useAppDispatch } from "@/store/hooks";
-import { setPendingSignup } from "@/store/authSlice";
+import { setPendingSignup, setUser } from "@/store/authSlice";
 import { validateSignupForm, type SignupForm } from "@/lib/validators";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { 
-  Mail, Building2, FileText, CheckCircle, AlertCircle, ArrowLeft, 
+import {
+  Mail, Building2, FileText, CheckCircle, AlertCircle, ArrowLeft,
   Loader2, RotateCcw, Eye, EyeOff
 } from "lucide-react";
 import { RootState } from "@/store";
@@ -89,7 +89,7 @@ export default function BrandSignupPage() {
 
   const startSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const validation = validateSignupForm(formData);
     if (!validation.isValid) {
       setErrors(validation.errors);
@@ -117,7 +117,7 @@ export default function BrandSignupPage() {
       }
 
       const data = await response.json();
-      
+
       // Store signup data for OTP verification
       dispatch(setPendingSignup({
         brandName: formData.brandName.trim(),
@@ -177,9 +177,29 @@ export default function BrandSignupPage() {
         throw new Error(errorData.message);
       }
 
+      const data = await response.json();
+      
       // Clear pending signup after successful verification
       dispatch(setPendingSignup(null));
-      setStep("success");
+      
+      // If we have session data, automatically log in the user
+      if (data.session) {
+        // Set the user in Redux with brand information
+        dispatch(setUser({
+          id: data.userId,
+          email: pendingSignup.email,
+          role: 'brand',
+          brandName: pendingSignup.brandName,
+          brandLegalName: pendingSignup.brandLegalName,
+          verified: data.brand?.verified || false,
+        }));
+        
+        // Redirect to dashboard
+        router.push('/dashboard');
+      } else {
+        // Fallback to success step if no session
+        setStep("success");
+      }
     } catch (err: unknown) {
       setOtpError(err instanceof Error ? err.message : "Verification failed");
     } finally {
@@ -211,7 +231,7 @@ export default function BrandSignupPage() {
       }
 
       const data = await response.json();
-      
+
       // Update pending signup with new OTP
       dispatch(setPendingSignup({
         ...pendingSignup,
@@ -314,9 +334,9 @@ export default function BrandSignupPage() {
                           className={`pr-10 ${errors.password ? "border-destructive" : ""}`}
                           placeholder="Password"
                         />
-                        <button 
-                          type="button" 
-                          onClick={() => setShowPassword(!showPassword)} 
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
                         >
                           {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
@@ -336,9 +356,9 @@ export default function BrandSignupPage() {
                           className={`pr-10 ${errors.confirmPassword ? "border-destructive" : ""}`}
                           placeholder="Confirm"
                         />
-                        <button 
-                          type="button" 
-                          onClick={() => setShowConfirm(!showConfirm)} 
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirm(!showConfirm)}
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
                         >
                           {showConfirm ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
@@ -421,9 +441,9 @@ export default function BrandSignupPage() {
                     />
                   </div>
 
-                  <Button 
-                    onClick={verifyOTP} 
-                    disabled={isLoading || otp.length !== 6} 
+                  <Button
+                    onClick={verifyOTP}
+                    disabled={isLoading || otp.length !== 6}
                     className="w-full"
                   >
                     {isLoading ? (
@@ -436,24 +456,40 @@ export default function BrandSignupPage() {
                     )}
                   </Button>
 
-                  <Button 
-                    onClick={resendOTP} 
-                    disabled={isResending} 
-                    variant="outline" 
-                    className="w-full"
-                  >
-                    {isResending ? (
-                      <>
-                        <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                        Sending...
-                      </>
-                    ) : (
-                      <>
-                        <RotateCcw className="w-5 h-5 mr-2" />
-                        Resend Code
-                      </>
-                    )}
-                  </Button>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Button
+                      onClick={() => {
+                        setStep("form");
+                        setOTP("");
+                        setOtpError("");
+                        dispatch(setPendingSignup(null));
+                      }}
+                      variant="ghost"
+                      className="w-full"
+                    >
+                      <ArrowLeft className="w-4 h-4 mr-2" />
+                      Go Back
+                    </Button>
+                    <Button
+                      onClick={resendOTP}
+                      disabled={isResending}
+                      variant="outline"
+                      className="w-full"
+                    >
+                      {isResending ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                          Sending...
+                        </>
+                      ) : (
+                        <>
+                          <RotateCcw className="w-4 h-4 mr-2" />
+                          Resend
+                        </>
+                      )}
+                    </Button>
+
+                  </div>
                 </div>
               </>
             )}
@@ -465,14 +501,19 @@ export default function BrandSignupPage() {
                 </div>
                 <h2 className="text-2xl font-medium mb-2">You&apos;re all set!</h2>
                 <p className="text-muted-foreground mb-6">
-                  Your brand account has been created. Verification status is pending approval.
+                  Your brand account has been created successfully. You can now sign in to access your dashboard.
                 </p>
-                <Link 
-                  href="/dashboard" 
-                  className="bg-primary text-primary-foreground px-6 py-3 rounded-full font-medium hover:bg-primary/90 transition-colors inline-block"
-                >
-                  Go to Dashboard
-                </Link>
+                <div className="space-y-3">
+                  <Link 
+                    href="/auth/brand/login" 
+                    className="bg-primary text-primary-foreground px-6 py-3 rounded-full font-medium hover:bg-primary/90 transition-colors inline-block"
+                  >
+                    Sign In to Dashboard
+                  </Link>
+                  <div className="text-sm text-muted-foreground">
+                    <p>Check your email for a confirmation if you haven&apos;t been automatically signed in.</p>
+                  </div>
+                </div>
               </div>
             )}
           </div>
