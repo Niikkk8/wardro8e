@@ -1,11 +1,11 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-export type UserRole = 'brand' | 'user' | null;
+export type AccountRole = 'brand' | 'user' | null;
 
-export interface User {
+export interface AuthAccount {
   id: string;
   email: string;
-  role: UserRole;
+  role: AccountRole;
   brandName?: string;
   brandLegalName?: string;
   verified?: boolean;
@@ -21,13 +21,13 @@ export interface PendingSignup {
 }
 
 export interface AuthState {
-  user: User | null;
+  account: AuthAccount | null;
   loading: boolean;
   pendingSignup: PendingSignup | null;
 }
 
 const initialState: AuthState = {
-  user: null,
+  account: null,
   loading: true,
   pendingSignup: null,
 };
@@ -36,22 +36,22 @@ export const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    setUser: (state, action: PayloadAction<User | null>) => {
-      state.user = action.payload;
+    setAuthAccount: (state, action: PayloadAction<AuthAccount | null>) => {
+      state.account = action.payload;
       state.loading = false;
     },
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.loading = action.payload;
     },
-    clearUser: (state) => {
-      state.user = null;
+    clearAuth: (state) => {
+      state.account = null;
       state.loading = false;
     },
-    setBrand: (state, action: PayloadAction<{ brandName: string; brandLegalName: string; verified: boolean }>) => {
-      if (state.user) {
-        state.user.brandName = action.payload.brandName;
-        state.user.brandLegalName = action.payload.brandLegalName;
-        state.user.verified = action.payload.verified;
+    setBrandProfile: (state, action: PayloadAction<{ brandName: string; brandLegalName: string; verified: boolean }>) => {
+      if (state.account) {
+        state.account.brandName = action.payload.brandName;
+        state.account.brandLegalName = action.payload.brandLegalName;
+        state.account.verified = action.payload.verified;
       }
     },
     setPendingSignup: (state, action: PayloadAction<PendingSignup | null>) => {
@@ -83,10 +83,10 @@ export const authSlice = createSlice({
 });
 
 export const { 
-  setUser, 
+  setAuthAccount, 
   setLoading, 
-  clearUser, 
-  setBrand,
+  clearAuth, 
+  setBrandProfile,
   setPendingSignup, 
   loadPendingSignup 
 } = authSlice.actions;

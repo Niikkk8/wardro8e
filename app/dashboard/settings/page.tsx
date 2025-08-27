@@ -15,16 +15,17 @@ export default function SettingsPage() {
     let mounted = true;
     (async () => {
       try {
-        const { data: sessionRes } = await supabase.auth.getSession();
-        const token = sessionRes.session?.access_token;
-        const res = await fetch("/api/brand/settings", {
-          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-          credentials: "include",
-        });
-        const j = await res.json();
-        if (mounted && j?.settings) {
-          setBrandName(j.settings.brand_name ?? "");
-          setEmail(j.settings.email ?? "");
+        const { data: userRes } = await supabase.auth.getUser();
+        const authUser = userRes?.user;
+        if (!authUser?.id) return;
+        const { data: brand, error } = await supabase
+          .from('brands')
+          .select('brand_name,email')
+          .eq('id', authUser.id)
+          .maybeSingle();
+        if (!error && brand) {
+          setBrandName(brand.brand_name ?? "");
+          setEmail(brand.email ?? "");
         }
       } finally {
         if (mounted) setLoading(false);
@@ -58,18 +59,13 @@ export default function SettingsPage() {
                 onClick={async () => {
                   setSaving(true);
                   try {
-                    const { data: sessionRes } = await supabase.auth.getSession();
-                    const token = sessionRes.session?.access_token;
-                    const res = await fetch("/api/brand/settings", {
-                      method: "PATCH",
-                      headers: {
-                        "Content-Type": "application/json",
-                        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-                      },
-                      credentials: "include",
-                      body: JSON.stringify({ brand_name: brandName, email }),
-                    });
-                    if (!res.ok) return;
+                    const { data: userRes } = await supabase.auth.getUser();
+                    const authUser = userRes?.user;
+                    if (!authUser?.id) return;
+                    await supabase
+                      .from('brands')
+                      .update({ brand_name: brandName, email })
+                      .eq('id', authUser.id);
                   } finally {
                     setSaving(false);
                   }

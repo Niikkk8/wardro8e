@@ -37,7 +37,7 @@ export default function BrandLoginPage() {
     
     try {
       await dispatch(login(email.trim().toLowerCase(), password));
-      // Note: Redirection is now handled by AuthRedirect component
+      // Redirection is handled globally in StoreProvider
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Login failed');
     } finally {
@@ -45,7 +45,7 @@ export default function BrandLoginPage() {
     }
   };
 
-  // Note: Redirection is now handled by AuthRedirect component
+  // Redirection is handled globally in StoreProvider
 
   return (
     <div className="pt-24 md:pt-28 pb-10 md:pb-14 min-h-screen bg-gradient-to-br from-primary/10 to-primary/5">

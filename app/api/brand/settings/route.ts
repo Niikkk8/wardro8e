@@ -20,11 +20,20 @@ export async function GET(req: NextRequest) {
     const admin = getSupabaseAdmin();
     const { data, error } = await admin
       .from("brands")
-      .select("id,brand_name,slug,description,email")
+      .select("id,brand_name,brand_legal_name,verified,description,email")
       .eq("id", userId)
       .maybeSingle();
     if (error) return NextResponse.json({ message: "Failed to fetch" }, { status: 500 });
-    return NextResponse.json({ settings: data });
+    if (!data) return NextResponse.json({ settings: null }, { status: 200 });
+    // Flatten for client simplicity
+    return NextResponse.json({
+      id: data.id,
+      brand_name: data.brand_name,
+      brand_legal_name: data.brand_legal_name,
+      verified: data.verified,
+      description: data.description,
+      email: data.email,
+    });
   } catch {
     return NextResponse.json({ message: "Server error" }, { status: 500 });
   }

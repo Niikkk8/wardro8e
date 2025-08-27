@@ -1,5 +1,5 @@
 import { AppDispatch } from './index';
-import { clearUser } from './authSlice';
+import { clearAuth } from './authSlice';
 import { supabase } from '@/lib/supabase';
 
 export const login = (email: string, password: string) => async (_dispatch: AppDispatch) => {
@@ -31,7 +31,7 @@ export const login = (email: string, password: string) => async (_dispatch: AppD
     throw setErr;
   }
 
-  console.log('authActions: Supabase session set; StoreProvider subscription will hydrate user');
+  console.log('authActions: Supabase session set; StoreProvider subscription will hydrate account');
 };
 
 export const logout = () => async (dispatch: AppDispatch) => {
@@ -40,36 +40,6 @@ export const logout = () => async (dispatch: AppDispatch) => {
   } catch (error) {
     console.error('Logout failed:', error);
   } finally {
-    dispatch(clearUser());
-  }
-};
-
-export const refreshAuth = () => async (dispatch: AppDispatch) => {
-  try {
-    const { data: sessionRes } = await supabase.auth.getSession();
-    const token = sessionRes.session?.access_token;
-
-    if (!token) {
-      dispatch(clearUser());
-      return;
-    }
-
-    const response = await fetch('/api/auth/me', {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    if (!response.ok) {
-      dispatch(clearUser());
-      return;
-    }
-
-    const data = await response.json();
-    if (!data?.userId) {
-      dispatch(clearUser());
-    }
-    // Note: user state will be hydrated by StoreProvider subscription as well
-  } catch (error) {
-    console.error('Failed to refresh auth:', error);
-    dispatch(clearUser());
+    dispatch(clearAuth());
   }
 };

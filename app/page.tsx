@@ -145,9 +145,6 @@ export default function HomePage() {
                 </div>
               </div>
             </div>
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-background rounded-full p-4 shadow-2xl">
-              <Sparkles className="w-6 sm:w-10 h-6 sm:h-10 text-primary animate-pulse" />
-            </div>
           </motion.div>
         </div>
       </section>

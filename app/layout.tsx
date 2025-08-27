@@ -4,7 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import StoreProvider from "@/app/StoreProvider";
 import RouteAwareChrome from "@/components/RouteAwareChrome";
-import AuthRedirect from "@/components/AuthRedirect";
+// AuthRedirect removed; route protection handled inside StoreProvider
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -57,7 +57,6 @@ export default function RootLayout({
       <body className="font-sans antialiased">
         <ThemeProvider>
           <StoreProvider>
-            <AuthRedirect />
             <div className="min-h-screen bg-background text-foreground">
               <RouteAwareChrome>
                 <main>{children}</main>

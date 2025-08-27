@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useAppSelector, useAppDispatch } from "@/store/hooks";
-import { setPendingSignup, setUser } from "@/store/authSlice";
+import { setPendingSignup, setAuthAccount } from "@/store/authSlice";
 import { validateSignupForm, type SignupForm } from "@/lib/validators";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -182,10 +182,10 @@ export default function BrandSignupPage() {
       // Clear pending signup after successful verification
       dispatch(setPendingSignup(null));
       
-      // If we have session data, automatically log in the user
+      // If we have session data, automatically log in the brand
       if (data.session) {
-        // Set the user in Redux with brand information
-        dispatch(setUser({
+        // Set the account in Redux with brand information
+        dispatch(setAuthAccount({
           id: data.userId,
           email: pendingSignup.email,
           role: 'brand',
