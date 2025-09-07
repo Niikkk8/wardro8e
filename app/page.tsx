@@ -26,8 +26,8 @@ export default function HomePage() {
     },
     {
       icon: <Heart className="w-7 h-7" />,
-      title: "Unique Brands",
-      description: "Discover independent designers and emerging brands that match your aesthetic, not just mass-market trends.",
+      title: "Independent Creators",
+      description: "Discover independent designers and emerging labels that match your aesthetic, not just mass-market trends.",
     },
     {
       icon: <TrendingUp className="w-7 h-7" />,
@@ -38,7 +38,7 @@ export default function HomePage() {
 
   const stats = [
     { value: "10K+", label: "Active Shoppers", description: "Fashion enthusiasts" },
-    { value: "500+", label: "Partner Brands", description: "Curated designers" },
+    { value: "500+", label: "Partner Sellers", description: "Brands & designers" },
     { value: "98%", label: "Match Accuracy", description: "AI precision" },
     { value: "2M+", label: "Style Matches", description: "Happy connections" },
   ];
@@ -81,7 +81,7 @@ export default function HomePage() {
                 href="/for-brands"
                 className="border-2 border-border text-foreground px-12 py-4 text-lg rounded-full hover:border-primary hover:text-primary transition-all duration-300"
               >
-                I&apos;m a Brand
+                For Sellers
               </Link>
             </div>
 

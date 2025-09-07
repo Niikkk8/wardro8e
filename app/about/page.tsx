@@ -15,7 +15,7 @@ export default function AboutPage() {
         {
             icon: <Users className="w-10 h-10" />,
             title: "Community",
-            description: "Building connections between brands and shoppers who share aesthetic values.",
+            description: "Building connections between creators and shoppers who share aesthetic values.",
         },
         {
             icon: <Shield className="w-10 h-10" />,

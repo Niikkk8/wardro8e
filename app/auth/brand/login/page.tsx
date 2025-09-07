@@ -58,8 +58,8 @@ export default function BrandLoginPage() {
 
           <div className="bg-card p-6 md:p-8 rounded-3xl border border-border">
             <div className="text-center mb-5 md:mb-6">
-              <h1 className="text-2xl md:text-3xl font-serif font-light mb-1">Welcome Back</h1>
-              <p className="text-sm md:text-base text-muted-foreground">Sign in to your brand account</p>
+              <h1 className="text-2xl md:text-3xl font-serif font-light mb-1">Welcome back</h1>
+              <p className="text-sm md:text-base text-muted-foreground">Sign in to your account</p>
             </div>
 
             {error && (
@@ -71,25 +71,25 @@ export default function BrandLoginPage() {
 
             <form onSubmit={handleSubmit} className="space-y-3 md:space-y-4">
               <div className="space-y-1">
-                <Label className="text-[13px] md:text-sm">Email Address</Label>
+                <Label className="text-[13px] md:text-sm">Email</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                  <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="pl-10" placeholder="Email" required />
+                  <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="pl-10" placeholder="you@example.com" required />
                 </div>
               </div>
               <div className="space-y-1">
                 <Label className="text-[13px] md:text-sm">Password</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                  <Input type={show ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} className="pl-10 pr-10" placeholder="Password" required />
+                  <Input type={show ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} className="pl-10 pr-10" placeholder="Your password" required />
                   <button type="button" onClick={() => setShow(!show)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">{show ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}</button>
                 </div>
               </div>
-              <Button type="submit" disabled={isLoading} className="w-full">{isLoading ? (<><Loader2 className="w-5 h-5 animate-spin" /><span className="ml-2">Signing in...</span></>) : ("Sign In")}</Button>
+              <Button type="submit" disabled={isLoading} className="w-full">{isLoading ? (<><Loader2 className="w-5 h-5 animate-spin" /><span className="ml-2">Signing in...</span></>) : ("Sign in")}</Button>
             </form>
 
             <div className="text-center mt-6 pt-5 border-t border-border">
-              <p className="text-muted-foreground">New to Wardro8e? <Link href="/auth/brand/signup" className="text-primary hover:underline font-medium">Create account</Link></p>
+              <p className="text-muted-foreground">New here? <Link href="/auth/brand/signup" className="text-primary hover:underline font-medium">Create account</Link></p>
             </div>
           </div>
         </motion.div>

@@ -10,10 +10,11 @@ import {
   Settings,
   Shield,
   AlertCircle,
-  CheckCircle
+  CheckCircle,
+  X
 } from "lucide-react";
 import { cn } from "@/components/ui/cn";
-import { supabase } from "@/lib/supabase";
+import { useAppSelector } from "@/store/hooks";
 
 const links = [
   { href: "/dashboard/overview", label: "Overview", icon: LayoutDashboard },
@@ -23,62 +24,26 @@ const links = [
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
 
-type BrandInfo = {
-  brand_name: string;
-  email: string;
-  verified: boolean;
-  verification_status?: string;
-};
+// Remove the BrandInfo type since we'll use Redux store
 
-export default function Sidebar() {
+interface SidebarProps {
+  onClose?: () => void;
+  collapsed?: boolean;
+}
+
+export default function Sidebar({ onClose, collapsed = false }: SidebarProps) {
   const pathname = usePathname();
-  const [brandInfo, setBrandInfo] = useState<BrandInfo | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchBrandInfo();
-  }, []);
-
-  const fetchBrandInfo = async () => {
-    try {
-      const { data: sessionRes } = await supabase.auth.getSession();
-      const token = sessionRes.session?.access_token;
-
-      if (!token) return;
-
-      const res = await fetch("/api/brand/info", {
-        headers: { Authorization: `Bearer ${token}` },
-        credentials: "include",
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        setBrandInfo(data);
-      }
-    } catch (error) {
-      console.error("Failed to fetch brand info:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const authState = useAppSelector((state) => state.auth);
+  const account = authState.account;
 
   const getVerificationBadge = () => {
-    if (!brandInfo) return null;
+    if (!account) return null;
 
-    if (brandInfo.verified) {
+    if (account.verified) {
       return (
         <div className="flex items-center gap-1.5 text-green-600">
           <CheckCircle className="w-4 h-4" />
           <span className="text-xs">Verified</span>
-        </div>
-      );
-    }
-
-    if (brandInfo.verification_status === 'under_review') {
-      return (
-        <div className="flex items-center gap-1.5 text-yellow-600">
-          <AlertCircle className="w-4 h-4" />
-          <span className="text-xs">Under Review</span>
         </div>
       );
     }
@@ -92,54 +57,94 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className="h-screen w-64 shrink-0 border-r border-border bg-card/50 backdrop-blur supports-[backdrop-filter]:bg-card/60">
-      <div className="px-5 py-6">
-        <div className="text-2xl font-serif mb-2">
-          <span>wardro</span>
-          <span className="text-teal-500">8</span>
-          <span>e</span>
+    <aside className={`h-screen shrink-0 border-r border-border bg-card/50 backdrop-blur supports-[backdrop-filter]:bg-card/60 transition-all duration-300 ${collapsed ? 'w-16' : 'w-64'
+      }`}>
+      <div className={`py-6 transition-all duration-300 flex flex-col h-full ${collapsed ? 'px-3' : 'px-5'}`}>
+        <div className="flex items-center justify-between mb-2">
+          {!collapsed && (
+            <div className="text-2xl font-serif">
+              <span>wardro</span>
+              <span className="text-teal-500">8</span>
+              <span>e</span>
+            </div>
+          )}
+          {collapsed && (
+            <div className="text-xl font-serif mx-auto">
+              <span className="text-teal-500">8</span>
+            </div>
+          )}
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="md:hidden p-1 hover:bg-muted rounded-md transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
         </div>
 
-        {/* Brand Info Section */}
-        {!loading && brandInfo && (
-          <div className="mb-6 p-3 bg-muted/50 rounded-xl">
-            <div className="text-sm font-medium truncate">{brandInfo.brand_name}</div>
-            <div className="text-xs text-muted-foreground truncate">{brandInfo.email}</div>
-            <div className="mt-2">
-              {getVerificationBadge()}
-            </div>
-          </div>
-        )}
-
-        <nav className="space-y-1">
+        <nav className="space-y-1 flex-1 mt-6">
           {links.map(({ href, label, icon: Icon }) => {
             const isActive = pathname === href || pathname?.startsWith(href + "/");
 
             // Highlight verification if not verified
-            const shouldHighlight = href === "/dashboard/verification" && brandInfo && !brandInfo.verified;
+            const shouldHighlight = href === "/dashboard/verification" && account && !account.verified;
 
             return (
               <Link
                 key={href}
                 href={href}
+                onClick={() => onClose?.()}
                 className={cn(
-                  "flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition-colors relative",
+                  "flex items-center rounded-xl px-3 py-2 text-sm transition-colors relative",
+                  collapsed ? "justify-center" : "gap-3",
                   isActive
                     ? "bg-primary/10 text-primary"
                     : shouldHighlight
                       ? "text-primary hover:bg-primary/10"
                       : "text-muted-foreground hover:text-foreground hover:bg-muted"
                 )}
+                title={collapsed ? label : undefined}
               >
                 <Icon className="w-4 h-4" />
-                <span>{label}</span>
-                {shouldHighlight && (
+                {!collapsed && <span>{label}</span>}
+                {shouldHighlight && !collapsed && (
                   <span className="ml-auto w-2 h-2 bg-primary rounded-full animate-pulse" />
+                )}
+                {shouldHighlight && collapsed && (
+                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full animate-pulse" />
                 )}
               </Link>
             );
           })}
         </nav>
+
+        {/* Brand Info Section */}
+        {account && !collapsed && (
+          <div className="mb-6 p-3 bg-muted/50 rounded-xl">
+            <div className="text-sm font-medium truncate">
+              {account.brandName || account.email}
+            </div>
+            <div className="text-xs text-muted-foreground truncate">
+              {account.email}
+            </div>
+            <div className="mt-2">
+              {getVerificationBadge()}
+            </div>
+          </div>
+        )}
+
+        {/* Footer Section */}
+        {!collapsed && (
+          <div className="mt-auto pt-4 border-t border-border/50">
+            <div className="text-xs text-muted-foreground text-center">
+              Wardro8e Dashboard
+            </div>
+            <div className="text-xs text-muted-foreground text-center mt-1">
+              v1.0.0
+            </div>
+          </div>
+        )}
       </div>
     </aside>
   );

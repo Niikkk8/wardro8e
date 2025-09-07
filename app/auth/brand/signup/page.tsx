@@ -261,9 +261,9 @@ export default function BrandSignupPage() {
               <>
                 <div className="text-center mb-6">
                   <h1 className="text-3xl font-serif font-light mb-2">
-                    Create Your <span className="text-primary">Brand Account</span>
+                    Create your <span className="text-primary">Seller Account</span>
                   </h1>
-                  <p className="text-muted-foreground">Quick signup with email verification</p>
+                  <p className="text-muted-foreground">For brands and designers</p>
                 </div>
 
                 {errors.general && (
@@ -276,7 +276,7 @@ export default function BrandSignupPage() {
                 <form onSubmit={startSignup} className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label>Brand Name *</Label>
+                      <Label>Brand/Designer *</Label>
                       <div className="relative">
                         <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                         <Input
@@ -284,14 +284,14 @@ export default function BrandSignupPage() {
                           value={formData.brandName}
                           onChange={handleChange}
                           className={`pl-10 ${errors.brandName ? "border-destructive" : ""}`}
-                          placeholder="Brand name"
+                          placeholder="Brand or studio"
                         />
                       </div>
                       {errors.brandName && <p className="text-sm text-destructive">{errors.brandName}</p>}
                     </div>
 
                     <div className="space-y-2">
-                      <Label>Legal Business Name *</Label>
+                      <Label>Legal name *</Label>
                       <div className="relative">
                         <FileText className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                         <Input
@@ -299,7 +299,7 @@ export default function BrandSignupPage() {
                           value={formData.brandLegalName}
                           onChange={handleChange}
                           className={`pl-10 ${errors.brandLegalName ? "border-destructive" : ""}`}
-                          placeholder="Legal name"
+                          placeholder="Legal entity"
                         />
                       </div>
                       {errors.brandLegalName && <p className="text-sm text-destructive">{errors.brandLegalName}</p>}
@@ -307,7 +307,7 @@ export default function BrandSignupPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Work Email *</Label>
+                    <Label>Email *</Label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                       <Input
@@ -316,7 +316,7 @@ export default function BrandSignupPage() {
                         value={formData.email}
                         onChange={handleChange}
                         className={`pl-10 ${errors.email ? "border-destructive" : ""}`}
-                        placeholder="Email"
+                        placeholder="name@brand.com"
                       />
                     </div>
                     {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
@@ -332,7 +332,7 @@ export default function BrandSignupPage() {
                           value={formData.password}
                           onChange={handleChange}
                           className={`pr-10 ${errors.password ? "border-destructive" : ""}`}
-                          placeholder="Password"
+                          placeholder="Min 8, Aa, 0-9, !"
                         />
                         <button
                           type="button"
@@ -346,7 +346,7 @@ export default function BrandSignupPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label>Confirm Password *</Label>
+                      <Label>Confirm *</Label>
                       <div className="relative">
                         <Input
                           type={showConfirm ? 'text' : 'password'}
@@ -354,7 +354,7 @@ export default function BrandSignupPage() {
                           value={formData.confirmPassword}
                           onChange={handleChange}
                           className={`pr-10 ${errors.confirmPassword ? "border-destructive" : ""}`}
-                          placeholder="Confirm"
+                          placeholder="Re-enter"
                         />
                         <button
                           type="button"
@@ -388,17 +388,17 @@ export default function BrandSignupPage() {
                     {isLoading ? (
                       <>
                         <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                        Sending Code...
+                        Sending...
                       </>
                     ) : (
-                      "Continue"
+                      "Send code"
                     )}
                   </Button>
                 </form>
 
                 <div className="text-center mt-6 pt-6 border-t border-border">
                   <p className="text-muted-foreground">
-                    Already have an account?{' '}
+                    Have an account?{' '}
                     <Link href="/auth/brand/login" className="text-primary hover:underline font-medium">
                       Sign in
                     </Link>
@@ -410,7 +410,7 @@ export default function BrandSignupPage() {
             {step === "otp" && (
               <>
                 <div className="text-center mb-6">
-                  <h2 className="text-2xl font-serif font-light mb-2">Verify Your Email</h2>
+                  <h2 className="text-2xl font-serif font-light mb-2">Verify email</h2>
                   <p className="text-muted-foreground">
                     Enter the 6-digit code sent to <span className="font-medium text-foreground">{formData.email}</span>
                   </p>
@@ -425,7 +425,7 @@ export default function BrandSignupPage() {
 
                 <div className="space-y-6">
                   <div>
-                    <Label>Verification Code</Label>
+                    <Label>Code</Label>
                     <Input
                       type="text"
                       inputMode="numeric"
@@ -452,7 +452,7 @@ export default function BrandSignupPage() {
                         Verifying...
                       </>
                     ) : (
-                      "Verify & Create Account"
+                      "Verify & create"
                     )}
                   </Button>
 
@@ -468,7 +468,7 @@ export default function BrandSignupPage() {
                       className="w-full"
                     >
                       <ArrowLeft className="w-4 h-4 mr-2" />
-                      Go Back
+                      Back
                     </Button>
                     <Button
                       onClick={resendOTP}
@@ -501,14 +501,14 @@ export default function BrandSignupPage() {
                 </div>
                 <h2 className="text-2xl font-medium mb-2">You&apos;re all set!</h2>
                 <p className="text-muted-foreground mb-6">
-                  Your brand account has been created successfully. You can now sign in to access your dashboard.
+                  Account created. Sign in to your dashboard.
                 </p>
                 <div className="space-y-3">
                   <Link 
                     href="/auth/brand/login" 
                     className="bg-primary text-primary-foreground px-6 py-3 rounded-full font-medium hover:bg-primary/90 transition-colors inline-block"
                   >
-                    Sign In to Dashboard
+                    Sign in to dashboard
                   </Link>
                   <div className="text-sm text-muted-foreground">
                     <p>Check your email for a confirmation if you haven&apos;t been automatically signed in.</p>

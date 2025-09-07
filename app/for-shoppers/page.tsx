@@ -124,7 +124,7 @@ export default function ForShoppersPage() {
                 >
                     <div className="inline-flex items-center px-4 py-2 bg-primary/10 rounded-full mb-6">
                         <Zap className="w-4 h-4 text-primary mr-2" />
-                        <span className="text-sm font-medium text-primary">Personalized Fashion Discovery</span>
+                        <span className="text-sm font-medium text-primary">Personalized Style Discovery</span>
                     </div>
 
                     <h1 className="text-5xl md:text-6xl lg:text-7xl font-serif font-light mb-8">

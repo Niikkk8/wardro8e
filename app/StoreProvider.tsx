@@ -49,14 +49,18 @@ export default function StoreProvider({ children }: { children: React.ReactNode 
             .select('brand_name, brand_legal_name, verified')
             .eq('id', authUser.id)
             .maybeSingle();
+          
           if (brandRow) {
             accountData.role = 'brand';
             accountData.brandName = brandRow.brand_name as unknown as string | undefined;
             accountData.brandLegalName = brandRow.brand_legal_name as unknown as string | undefined;
-            accountData.verified = (brandRow as unknown as { verified?: boolean }).verified ?? false;
+            accountData.verified = brandRow.verified ?? false;
           } else if (!accountData.role) {
             // If still unknown and no brand row, default to user
             accountData.role = 'user';
+          } else {
+            // If we have a brand role but no brand row found, set default values
+            accountData.verified = false;
           }
         }
 
@@ -116,6 +120,8 @@ export default function StoreProvider({ children }: { children: React.ReactNode 
     const { data: subscription } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session) {
         hydrateFromSession(session);
+      } else {
+        storeSingleton.dispatch(clearAuth());
       }
     });
 

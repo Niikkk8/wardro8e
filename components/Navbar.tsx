@@ -35,7 +35,7 @@ const Navbar = () => {
             name: "Solutions",
             dropdown: [
                 { name: "For Shoppers", href: "/for-shoppers" },
-                { name: "For Brands", href: "/for-brands" },
+                { name: "For Sellers", href: "/for-brands" },
             ],
         },
         { name: "Pricing", href: "/pricing" },
@@ -129,7 +129,7 @@ const Navbar = () => {
                         href="/auth"
                         className="bg-primary text-primary-foreground px-6 py-2 rounded-full hover:opacity-90 transition-all duration-300 hover:scale-105"
                     >
-                        Brand Login
+                        Sign in
                     </Link>
                 </div>
 
@@ -205,7 +205,7 @@ const Navbar = () => {
                                 className="block w-full bg-primary text-primary-foreground px-6 py-2 rounded-full text-center"
                                 onClick={() => setIsMobileMenuOpen(false)}
                             >
-                                Brand Login
+                                Sign in
                             </Link>
                         </div>
                     </motion.div>

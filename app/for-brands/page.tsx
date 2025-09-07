@@ -168,17 +168,17 @@ export default function ForBrandsPage() {
                 >
                     <div className="inline-flex items-center px-4 py-2 bg-primary/10 rounded-full mb-6">
                         <Building2 className="w-4 h-4 text-primary mr-2" />
-                        <span className="text-sm font-medium text-primary">AI-Powered Brand Growth</span>
+                        <span className="text-sm font-medium text-primary">AI-Powered Seller Growth</span>
                     </div>
 
                     <h1 className="text-5xl md:text-6xl lg:text-7xl font-serif font-light mb-8">
                         For Fashion
-                        <span className="block text-primary mt-2">Brands</span>
+                        <span className="block text-primary mt-2">Sellers</span>
                     </h1>
 
                     <p className="text-xl md:text-2xl text-muted-foreground max-w-4xl mx-auto leading-relaxed">
-                        Connect with customers who truly understand your vision. Let AI-powered matching 
-                        drive authentic growth and build lasting relationships with your perfect audience.
+                        Connect with customers who truly understand your vision. Let AI-powered matching
+                        drive authentic growth and build lasting relationships with your ideal audience.
                     </p>
                 </motion.div>
 
@@ -482,7 +482,7 @@ export default function ForBrandsPage() {
                         viewport={{ once: true }}
                         className="text-4xl md:text-5xl font-serif font-light text-center mb-16"
                     >
-                        Join 500+ Growing Brands
+                        Join 500+ Growing Sellers
                     </motion.h2>
 
                     <div className="grid grid-cols-3 md:grid-cols-6 gap-6">

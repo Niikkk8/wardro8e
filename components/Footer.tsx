@@ -20,7 +20,7 @@ const Footer = () => {
     const footerLinks = {
         Platform: [
             { name: "For Shoppers", href: "/for-shoppers" },
-            { name: "For Brands", href: "/for-brands" },
+            { name: "For Sellers", href: "/for-brands" },
             { name: "Pricing", href: "/pricing" },
             { name: "API Documentation", href: "#" },
             { name: "Mobile App", href: "#" },
@@ -81,7 +81,7 @@ const Footer = () => {
                             <span className="font-serif tracking-wide">e</span>
                         </Link>
                         <p className="text-lg text-muted-foreground mb-6 max-w-sm">
-                            AI-powered fashion discovery connecting unique brands with
+                            AI-powered style discovery connecting unique creators with
                             style-conscious shoppers worldwide.
                         </p>
                         <div className="flex space-x-4 mb-8">
@@ -158,7 +158,7 @@ const Footer = () => {
                             </div>
                         </div>
                         <p className="text-sm text-muted-foreground flex items-center">
-                            Made with <Heart className="w-4 h-4 mx-1 text-red-500 fill-current" /> for fashion lovers
+                            Made with <Heart className="w-4 h-4 mx-1 text-red-500 fill-current" /> for style lovers
                         </p>
                     </div>
                 </div>

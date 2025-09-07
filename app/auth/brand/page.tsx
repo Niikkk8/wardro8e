@@ -18,7 +18,7 @@ export default function BrandAuthPage() {
           <div className="text-center mb-12">
             <div className="inline-flex items-center space-x-2 bg-primary/10 px-6 py-3 rounded-full text-primary font-medium mb-6">
               <Building2 className="w-5 h-5" />
-              <span>Brand Portal</span>
+              <span>Brands & Designers</span>
             </div>
             
             <h1 className="text-4xl md:text-5xl font-serif font-light mb-6">
@@ -26,8 +26,7 @@ export default function BrandAuthPage() {
             </h1>
             
             <p className="text-xl text-muted-foreground leading-relaxed max-w-3xl mx-auto">
-              Join thousands of fashion brands already selling on our platform. 
-              Reach style-conscious customers and grow your business with our AI-powered discovery system.
+              For brands, designers, and boutiques. Reach more customers with AI-powered discovery.
             </p>
           </div>
 
@@ -72,9 +71,9 @@ export default function BrandAuthPage() {
                     <LogIn className="w-8 h-8" />
                   </div>
                   
-                  <h3 className="text-2xl font-medium mb-4">Sign In</h3>
+                  <h3 className="text-2xl font-medium mb-4">Sign in</h3>
                   <p className="text-lg text-muted-foreground leading-relaxed mb-6">
-                    Welcome back! Access your brand dashboard and manage your collections.
+                    Access your dashboard and manage your collection.
                   </p>
                   
                   <div className="text-primary font-medium flex items-center justify-center space-x-2 group-hover:translate-x-1 transition-transform">
@@ -93,7 +92,7 @@ export default function BrandAuthPage() {
             transition={{ duration: 0.6, delay: 0.6 }}
             className="bg-card p-8 rounded-3xl border border-border"
           >
-            <h4 className="text-2xl font-medium mb-8 text-center">Why Brands Choose Wardro8e</h4>
+            <h4 className="text-2xl font-medium mb-8 text-center">Why Sellers Choose Wardro8e</h4>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {[
                 {
@@ -113,7 +112,7 @@ export default function BrandAuthPage() {
                 }
               ].map((benefit, index) => (
                 <div key={index} className="text-center">
-                  <div className="text-4xl mb-4">{benefit.icon}</div>
+                  {/* <div className="text-4xl mb-4">{benefit.icon}</div> */}
                   <h5 className="text-lg font-medium mb-2">{benefit.title}</h5>
                   <p className="text-muted-foreground">{benefit.description}</p>
                 </div>
