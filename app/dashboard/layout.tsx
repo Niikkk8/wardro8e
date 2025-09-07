@@ -13,32 +13,32 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const account = authState.account;
 
   return (
-    <div className="min-h-screen flex">
-      {/* Desktop Sidebar */}
-      <div className="hidden md:block">
-        <Sidebar 
-          collapsed={sidebarCollapsed} 
-          onClose={() => setSidebarOpen(false)} 
+    <div className="h-screen overflow-hidden flex">
+      {/* Desktop Sidebar - Fixed */}
+      <div className="hidden md:block flex-shrink-0">
+        <Sidebar
+          collapsed={sidebarCollapsed}
+          onClose={() => setSidebarOpen(false)}
         />
       </div>
-      
+
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
           <div className="fixed inset-0 bg-black/50" onClick={() => setSidebarOpen(false)} />
           <div className="fixed left-0 top-0 h-full w-64">
-            <Sidebar 
-              collapsed={false} 
-              onClose={() => setSidebarOpen(false)} 
+            <Sidebar
+              collapsed={false}
+              onClose={() => setSidebarOpen(false)}
             />
           </div>
         </div>
       )}
-      
-      {/* Main Content */}
-      <div className="flex-1 min-w-0">
-        {/* Header with Toggle Button */}
-        <div className="flex items-center justify-between p-4 border-b border-border bg-card">
+
+      {/* Main Content Area */}
+      <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
+        {/* Header - Fixed */}
+        <div className="flex-shrink-0 flex items-center justify-between p-4 border-b border-border bg-card">
           <div className="flex items-center gap-3">
             {/* Mobile Menu Button */}
             <Button
@@ -49,7 +49,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             >
               <Menu className="w-5 h-5" />
             </Button>
-            
+
             {/* Desktop Toggle Button */}
             <Button
               variant="ghost"
@@ -59,7 +59,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             >
               <PanelLeftIcon className="w-5 h-5 text-gray-500" />
             </Button>
-            
+
             {/* Brand Name - Only show when sidebar is collapsed */}
             {sidebarCollapsed && account && (
               <div className="hidden md:block">
@@ -69,7 +69,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </div>
             )}
           </div>
-          
+
           {/* Center Logo - Only show when sidebar is not collapsed */}
           {!sidebarCollapsed && (
             <div className="text-lg font-serif">
@@ -78,7 +78,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <span>e</span>
             </div>
           )}
-          
+
           {/* Right side actions */}
           <div className="flex items-center gap-2">
             {/* Notifications */}
@@ -93,7 +93,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full" />
               )}
             </Button>
-            
+
             {/* User Profile */}
             <Button
               variant="ghost"
@@ -104,8 +104,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </Button>
           </div>
         </div>
-        
-        {children}
+
+        {/* Scrollable Content Area */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden">
+          {children}
+        </div>
       </div>
     </div>
   );

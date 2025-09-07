@@ -65,4 +65,77 @@ export function generateOTP(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
+export async function sendVerificationSubmissionEmail(email: string, brandName: string, verificationStatus: string) {
+  const mailOptions = {
+    from: process.env.EMAIL_FROM,
+    to: email,
+    subject: 'Brand Verification Submitted - Wardro8e',
+    html: `
+      <div style="font-family: 'Montserrat', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff;">
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h1 style="color: #0D9488; font-family: 'Playfair Display', serif; font-size: 32px; margin: 0;">Wardro8e</h1>
+          <p style="color: #6B7280; font-size: 16px; margin-top: 5px;">AI-Powered Fashion Discovery</p>
+        </div>
+        
+        <div style="background: linear-gradient(135deg, #0D9488 0%, #0F766E 100%); padding: 30px; border-radius: 24px; margin-bottom: 30px;">
+          <h2 style="color: white; font-size: 24px; margin: 0 0 10px 0; text-align: center;">Verification Submitted!</h2>
+          <p style="color: #E6FFFA; text-align: center; margin: 0; font-size: 16px;">We've received your brand verification documents</p>
+        </div>
+        
+        <div style="background-color: #F9FAFB; padding: 25px; border-radius: 16px; margin-bottom: 25px;">
+          <h3 style="color: #111827; font-size: 18px; margin: 0 0 15px 0;">Hello ${brandName},</h3>
+          <p style="color: #4B5563; line-height: 1.6; margin: 0 0 20px 0;">
+            Thank you for submitting your brand verification documents. We have received your application and our team will review it shortly.
+          </p>
+          
+          <div style="background-color: #EFF6FF; border-left: 4px solid #3B82F6; padding: 15px; margin: 20px 0; border-radius: 0 8px 8px 0;">
+            <p style="color: #1E40AF; font-weight: 600; margin: 0 0 5px 0;">Current Status:</p>
+            <p style="color: #1E40AF; margin: 0; text-transform: capitalize;">
+              ${verificationStatus === 'awaiting_esign' ? 'Awaiting E-Signature' : 'Under Review'}
+            </p>
+          </div>
+          
+          ${verificationStatus === 'awaiting_esign' ? `
+            <p style="color: #4B5563; line-height: 1.6; margin: 20px 0;">
+              <strong>Next Steps:</strong><br>
+              You chose electronic signature for your contract. We will send you a secure link to e-sign the partnership agreement within 24 hours.
+            </p>
+          ` : `
+            <p style="color: #4B5563; line-height: 1.6; margin: 20px 0;">
+              <strong>What happens next:</strong><br>
+              Our verification team will review your submitted documents and contract. This process typically takes 2-3 business days.
+            </p>
+          `}
+          
+          <p style="color: #6B7280; font-size: 14px; margin: 20px 0 0 0;">
+            You can track your verification status anytime by visiting your dashboard. We'll notify you once the review is complete.
+          </p>
+        </div>
+        
+        <div style="text-align: center; margin: 25px 0;">
+          <a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard/verification" 
+             style="background-color: #0D9488; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600;">
+            View Verification Status
+          </a>
+        </div>
+        
+        <div style="border-top: 1px solid #E5E7EB; padding-top: 20px; text-align: center;">
+          <p style="color: #9CA3AF; font-size: 14px; margin: 0;">
+            © 2024 Wardro8e. All rights reserved.<br>
+            AI-Powered Fashion Discovery Platform
+          </p>
+        </div>
+      </div>
+    `,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    return { success: true };
+  } catch (error) {
+    console.error('Verification email sending failed:', error);
+    return { success: false, error };
+  }
+}
+
 

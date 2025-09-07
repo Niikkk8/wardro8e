@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -57,10 +57,10 @@ export default function Sidebar({ onClose, collapsed = false }: SidebarProps) {
   };
 
   return (
-    <aside className={`h-screen shrink-0 border-r border-border bg-card/50 backdrop-blur supports-[backdrop-filter]:bg-card/60 transition-all duration-300 ${collapsed ? 'w-16' : 'w-64'
+    <aside className={`h-full overflow-hidden border-r border-border bg-card/50 backdrop-blur supports-[backdrop-filter]:bg-card/60 transition-all duration-300 ${collapsed ? 'w-16' : 'w-64'
       }`}>
-      <div className={`py-6 transition-all duration-300 flex flex-col h-full ${collapsed ? 'px-3' : 'px-5'}`}>
-        <div className="flex items-center justify-between mb-2">
+      <div className={`py-6 transition-all duration-300 flex flex-col h-full overflow-hidden ${collapsed ? 'px-3' : 'px-5'}`}>
+        <div className="flex-shrink-0 flex items-center justify-between mb-2">
           {!collapsed && (
             <div className="text-2xl font-serif">
               <span>wardro</span>
@@ -83,7 +83,7 @@ export default function Sidebar({ onClose, collapsed = false }: SidebarProps) {
           )}
         </div>
 
-        <nav className="space-y-1 flex-1 mt-6">
+        <nav className="space-y-1 flex-1 mt-6 overflow-y-auto overflow-x-hidden min-h-0">
           {links.map(({ href, label, icon: Icon }) => {
             const isActive = pathname === href || pathname?.startsWith(href + "/");
 
@@ -96,7 +96,7 @@ export default function Sidebar({ onClose, collapsed = false }: SidebarProps) {
                 href={href}
                 onClick={() => onClose?.()}
                 className={cn(
-                  "flex items-center rounded-xl px-3 py-2 text-sm transition-colors relative",
+                  "flex items-center rounded-xl px-3 py-2 text-sm transition-colors relative flex-shrink-0",
                   collapsed ? "justify-center" : "gap-3",
                   isActive
                     ? "bg-primary/10 text-primary"
@@ -121,7 +121,7 @@ export default function Sidebar({ onClose, collapsed = false }: SidebarProps) {
 
         {/* Brand Info Section */}
         {account && !collapsed && (
-          <div className="mb-6 p-3 bg-muted/50 rounded-xl">
+          <div className="flex-shrink-0 mb-6 p-3 bg-muted/50 rounded-xl">
             <div className="text-sm font-medium truncate">
               {account.brandName || account.email}
             </div>
@@ -136,7 +136,7 @@ export default function Sidebar({ onClose, collapsed = false }: SidebarProps) {
 
         {/* Footer Section */}
         {!collapsed && (
-          <div className="mt-auto pt-4 border-t border-border/50">
+          <div className="flex-shrink-0 pt-4 border-t border-border/50">
             <div className="text-xs text-muted-foreground text-center">
               Wardro8e Dashboard
             </div>

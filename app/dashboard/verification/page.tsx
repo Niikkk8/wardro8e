@@ -17,13 +17,16 @@ import {
     CheckCircle,
     ChevronRight,
     ChevronLeft,
-    Loader2
+    Loader2,
+    Download
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/components/ui/cn";
 import { supabase } from "@/lib/supabase";
+import { generateBrandPartnershipContract, type ContractData } from "@/lib/contract-generator";
+import Link from "next/link";
 
 type Step = 1 | 2 | 3 | 4 | 5;
 
@@ -55,9 +58,22 @@ type FormData = {
     website_url: string;
     instagram_handle: string;
 
-    // Documents
-    documents: File[];
+    // Address Proof Documents
+    address_proof_documents: File[];
+    
+    // Contract Documents
+    contract_document_action: string; // 'e_sign' | 'manual_sign'
+    contract_documents: File[];
 };
+
+const businessTypes = [
+    { value: "", label: "Select your business type", disabled: true },
+    { value: "independent_freelancer", label: "Independent Freelancer", disabled: false },
+    { value: "sole_proprietorship", label: "Sole Proprietorship", disabled: false },
+    { value: "partnership", label: "Partnership", disabled: false },
+    { value: "llp", label: "Limited Liability Partnership (LLP)", disabled: false },
+    { value: "private_limited", label: "Private Limited Company", disabled: false },
+];
 
 const steps = [
     { id: 1, title: "Business Details", icon: Building2 },
@@ -87,16 +103,45 @@ export default function VerificationPage() {
         ifsc_code: "",
         website_url: "",
         instagram_handle: "",
-        documents: [],
+        address_proof_documents: [],
+        contract_document_action: "",
+        contract_documents: [],
     });
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isLoading, setIsLoading] = useState(false);
     const [isCheckingStatus, setIsCheckingStatus] = useState(true);
     const [verificationStatus, setVerificationStatus] = useState<string | null>(null);
+    const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
+    const [userIP, setUserIP] = useState<string>("");
+    const [isGeneratingContract, setIsGeneratingContract] = useState(false);
+    const [userBrandName, setUserBrandName] = useState<string>("");
 
     useEffect(() => {
         checkVerificationStatus();
+        fetchUserIP();
+        fetchUserBrandName();
     }, []);
+
+    const fetchUserBrandName = async () => {
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session?.user?.user_metadata?.brand_name) {
+                setUserBrandName(session.user.user_metadata.brand_name);
+            }
+        } catch (error) {
+            console.error('Error fetching brand name:', error);
+        }
+    };
+
+    const fetchUserIP = async () => {
+        try {
+            const response = await fetch('https://api.ipify.org?format=json');
+            const data = await response.json();
+            setUserIP(data.ip);
+        } catch (error) {
+            console.error('Error fetching IP:', error);
+        }
+    };
 
     const checkVerificationStatus = async () => {
         try {
@@ -117,7 +162,8 @@ export default function VerificationPage() {
                     setFormData(prev => ({
                         ...prev,
                         ...data.verification,
-                        documents: [],
+                        address_proof_documents: [],
+                        contract_documents: [],
                     }));
                 }
             }
@@ -138,12 +184,22 @@ export default function VerificationPage() {
         }
     };
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleAddressProofFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
         if (files) {
             setFormData(prev => ({
                 ...prev,
-                documents: Array.from(files),
+                address_proof_documents: Array.from(files),
+            }));
+        }
+    };
+
+    const handleContractFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files;
+        if (files) {
+            setFormData(prev => ({
+                ...prev,
+                contract_documents: Array.from(files),
             }));
         }
     };
@@ -154,6 +210,7 @@ export default function VerificationPage() {
         switch (step) {
             case 1:
                 if (!formData.business_type) newErrors.business_type = "Business type is required";
+                if (!formData.gstin) newErrors.gstin = "GSTIN is required";
                 if (!formData.pan_number) newErrors.pan_number = "PAN number is required";
                 break;
             case 2:
@@ -168,7 +225,11 @@ export default function VerificationPage() {
                 if (!formData.pincode) newErrors.pincode = "Pincode is required";
                 break;
             case 5:
-                if (formData.documents.length === 0) newErrors.documents = "At least one document is required";
+                if (formData.address_proof_documents.length === 0) newErrors.address_proof_documents = "At least one address proof document is required";
+                if (!formData.contract_document_action) newErrors.contract_document_action = "Please select how you want to handle the contract";
+                if (formData.contract_document_action === 'manual_sign' && formData.contract_documents.length === 0) {
+                    newErrors.contract_documents = "Please upload the signed contract documents";
+                }
                 break;
         }
 
@@ -178,15 +239,53 @@ export default function VerificationPage() {
 
     const handleNext = () => {
         if (validateStep(currentStep)) {
+            setCompletedSteps(prev => new Set([...prev, currentStep]));
             if (currentStep < 5) {
                 setCurrentStep((currentStep + 1) as Step);
             }
         }
     };
 
+    const handleStepClick = (stepId: Step) => {
+        // Only allow clicking on current step, previous steps, or next step if current is completed
+        if (stepId <= currentStep || (stepId === currentStep + 1 && completedSteps.has(currentStep))) {
+            setCurrentStep(stepId);
+        }
+    };
+
     const handlePrevious = () => {
         if (currentStep > 1) {
             setCurrentStep((currentStep - 1) as Step);
+        }
+    };
+
+    const handleDownloadContract = async () => {
+        setIsGeneratingContract(true);
+        
+        try {
+            const contractData: ContractData = {
+                brand_name: userBrandName || formData.contact_name, // Use actual brand name from auth
+                contact_name: formData.contact_name,
+                contact_email: formData.contact_email,
+                contact_phone: formData.contact_phone,
+                address_line1: formData.address_line1,
+                address_line2: formData.address_line2,
+                city: formData.city,
+                state: formData.state,
+                pincode: formData.pincode,
+                business_type: formData.business_type,
+                gstin: formData.gstin,
+                pan_number: formData.pan_number,
+            };
+
+            const doc = generateBrandPartnershipContract(contractData);
+            const fileName = `Wardro8e_Partnership_Agreement_${(contractData.brand_name || contractData.contact_name).replace(/\s+/g, '_')}.pdf`;
+            doc.save(fileName);
+        } catch (error) {
+            console.error("Error generating contract:", error);
+            setErrors({ general: "Failed to generate contract. Please try again." });
+        } finally {
+            setIsGeneratingContract(false);
         }
     };
 
@@ -204,15 +303,27 @@ export default function VerificationPage() {
 
             // Add all form fields
             Object.entries(formData).forEach(([key, value]) => {
-                if (key !== 'documents' && value) {
+                if (key !== 'address_proof_documents' && key !== 'contract_documents' && value) {
                     submitData.append(key, value as string);
                 }
             });
 
-            // Add documents
-            formData.documents.forEach((file) => {
-                submitData.append('documents', file);
+            // Add IP address
+            if (userIP) {
+                submitData.append('user_ip', userIP);
+            }
+
+            // Add address proof documents
+            formData.address_proof_documents.forEach((file) => {
+                submitData.append('address_proof_documents', file);
             });
+
+            // Add contract documents if manual signing is chosen
+            if (formData.contract_document_action === 'manual_sign') {
+                formData.contract_documents.forEach((file) => {
+                    submitData.append('contract_documents', file);
+                });
+            }
 
             const res = await fetch("/api/brand/verification", {
                 method: "POST",
@@ -245,12 +356,22 @@ export default function VerificationPage() {
 
     if (verificationStatus === 'approved') {
         return (
-            <div className="p-6 md:p-8">
+            <div className="h-full flex items-center justify-center p-6 md:p-8">
                 <div className="max-w-2xl mx-auto">
                     <div className="bg-green-50 border border-green-200 rounded-2xl p-8 text-center">
                         <CheckCircle className="w-12 h-12 text-green-600 mx-auto mb-4" />
                         <h2 className="text-2xl font-medium mb-2">Verification Approved!</h2>
-                        <p className="text-muted-foreground">Your brand has been verified successfully.</p>
+                        <p className="text-muted-foreground mb-6">
+                            Congratulations! Your brand has been verified successfully.
+                        </p>
+                        <div className="flex gap-3 justify-center">
+                            <Link href="/dashboard/products">
+                                <Button>Start Adding Products</Button>
+                            </Link>
+                            <Link href="/dashboard/overview">
+                                <Button variant="outline">Go to Dashboard</Button>
+                            </Link>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -259,13 +380,16 @@ export default function VerificationPage() {
 
     if (verificationStatus === 'under_review') {
         return (
-            <div className="p-6 md:p-8">
+            <div className="h-full flex items-center justify-center p-6 md:p-8">
                 <div className="max-w-2xl mx-auto">
                     <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-8 text-center">
                         <AlertCircle className="w-12 h-12 text-yellow-600 mx-auto mb-4" />
                         <h2 className="text-2xl font-medium mb-2">Under Review</h2>
-                        <p className="text-muted-foreground">
+                        <p className="text-muted-foreground mb-4">
                             Your verification is being reviewed. We&apos;ll notify you once it&apos;s complete.
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                            Review typically takes 2-3 business days.
                         </p>
                     </div>
                 </div>
@@ -273,24 +397,67 @@ export default function VerificationPage() {
         );
     }
 
+    if (verificationStatus === 'awaiting_esign') {
     return (
-        <div className="p-6 md:p-8">
-            <div className="max-w-3xl mx-auto">
+            <div className="h-full flex items-center justify-center p-6 md:p-8">
+                <div className="max-w-2xl mx-auto">
+                    <div className="bg-blue-50 border border-blue-200 rounded-2xl p-8 text-center">
+                        <FileText className="w-12 h-12 text-blue-600 mx-auto mb-4" />
+                        <h2 className="text-2xl font-medium mb-2">Awaiting E-Signature</h2>
+                        <p className="text-muted-foreground mb-4">
+                            We&apos;ve received your documents. Please check your email for the e-signature link.
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                            The e-signature link will be sent within 24 hours.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (verificationStatus === 'rejected') {
+        return (
+            <div className="h-full flex items-center justify-center p-6 md:p-8">
+                <div className="max-w-2xl mx-auto">
+                    <div className="bg-red-50 border border-red-200 rounded-2xl p-8 text-center">
+                        <AlertCircle className="w-12 h-12 text-red-600 mx-auto mb-4" />
+                        <h2 className="text-2xl font-medium mb-2">Verification Rejected</h2>
+                        <p className="text-muted-foreground mb-4">
+                            Unfortunately, your verification was not approved. Please contact support for more details.
+                        </p>
+                        <Button variant="outline" onClick={() => setVerificationStatus(null)}>
+                            Submit New Application
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="h-full">
+            <div className="h-full flex flex-col max-w-4xl mx-auto p-6 md:p-8">
+                <div className="flex-shrink-0 mb-8">
                 <h1 className="text-3xl md:text-4xl mb-2">Brand Verification</h1>
-                <p className="text-muted-foreground mb-8">
+                    <p className="text-muted-foreground">
                     Complete your verification to start selling on Wardro8e
                 </p>
+                </div>
 
                 {/* Progress Steps */}
-                <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center justify-between mb-8 flex-shrink-0">
                     {steps.map((step, index) => (
                         <React.Fragment key={step.id}>
                             <div
                                 className={cn(
-                                    "flex flex-col items-center gap-2 cursor-pointer",
-                                    currentStep === step.id ? "text-primary" : "text-muted-foreground"
+                                    "flex flex-col items-center gap-2",
+                                    currentStep === step.id ? "text-primary" : "text-muted-foreground",
+                                    (step.id <= currentStep || (step.id === currentStep + 1 && completedSteps.has(currentStep))) 
+                                        ? "cursor-pointer hover:text-primary" 
+                                        : "cursor-not-allowed opacity-50"
                                 )}
-                                onClick={() => setCurrentStep(step.id as Step)}
+                                onClick={() => handleStepClick(step.id as Step)}
                             >
                                 <div
                                     className={cn(
@@ -323,7 +490,13 @@ export default function VerificationPage() {
                 </div>
 
                 {/* Form Content */}
-                <div className="bg-card border border-border rounded-3xl p-6 md:p-8">
+                <div className="flex-1 bg-card border border-border rounded-3xl overflow-hidden flex flex-col min-h-0">
+                    <div className="flex-1 overflow-y-auto overflow-x-hidden p-6 md:p-8 scrollbar-hide" style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
+                        <style jsx>{`
+                            .scrollbar-hide::-webkit-scrollbar {
+                                display: none;
+                            }
+                        `}</style>
                     {errors.general && (
                         <div className="bg-destructive/10 border border-destructive/20 rounded-xl p-4 mb-6 flex items-start space-x-3">
                             <AlertCircle className="w-5 h-5 text-destructive mt-0.5" />
@@ -345,37 +518,46 @@ export default function VerificationPage() {
 
                                 <div className="space-y-2">
                                     <Label>Business Type *</Label>
-                                    <div className="grid grid-cols-3 gap-2">
-                                        {["individual", "company", "partnership"].map((type) => (
-                                            <button
-                                                key={type}
-                                                type="button"
-                                                onClick={() => setFormData(prev => ({ ...prev, business_type: type }))}
+                                    <select
+                                        name="business_type"
+                                        value={formData.business_type}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, business_type: e.target.value }))}
                                                 className={cn(
-                                                    "px-4 py-2 rounded-xl border capitalize transition-colors",
-                                                    formData.business_type === type
-                                                        ? "bg-primary text-primary-foreground border-primary"
-                                                        : "bg-background border-border hover:border-primary"
-                                                )}
+                                            "w-full px-3 py-2 rounded-xl border border-border bg-background text-foreground",
+                                            "focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary",
+                                            errors.business_type ? "border-destructive" : "",
+                                            !formData.business_type ? "text-muted-foreground" : ""
+                                        )}
+                                    >
+                                        {businessTypes.map((type) => (
+                                            <option 
+                                                key={type.value} 
+                                                value={type.value} 
+                                                disabled={type.disabled}
+                                                className={type.disabled ? "text-muted-foreground" : "text-foreground"}
                                             >
-                                                {type}
-                                            </button>
+                                                {type.label}
+                                            </option>
                                         ))}
-                                    </div>
+                                    </select>
                                     {errors.business_type && (
                                         <p className="text-sm text-destructive">{errors.business_type}</p>
                                     )}
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label>GSTIN (Optional)</Label>
+                                    <Label>GSTIN *</Label>
                                     <Input
                                         name="gstin"
                                         value={formData.gstin}
                                         onChange={handleInputChange}
                                         placeholder="22AAAAA0000A1Z5"
                                         maxLength={15}
+                                        className={errors.gstin ? "border-destructive" : ""}
                                     />
+                                    {errors.gstin && (
+                                        <p className="text-sm text-destructive">{errors.gstin}</p>
+                                    )}
                                 </div>
 
                                 <div className="space-y-2">
@@ -626,42 +808,170 @@ export default function VerificationPage() {
 
                         {/* Step 5: Documents */}
                         {currentStep === 5 && (
-                            <div className="space-y-4">
-                                <h2 className="text-xl font-medium mb-2">Upload Documents</h2>
+                            <div className="space-y-8">
+                                {/* Address Proof Documents */}
+                                <div>
+                                    <h2 className="text-xl font-medium mb-2">Address Proof Documents</h2>
                                 <p className="text-sm text-muted-foreground mb-4">
-                                    Please upload at least one document with address proof (Aadhar, Passport, etc.)
+                                        Upload documents to verify your address and legal name (Aadhar Card, Passport, Driving License, etc.)
                                 </p>
 
                                 <div className="space-y-2">
-                                    <Label>Documents *</Label>
-                                    <div className="border-2 border-dashed border-border rounded-xl p-8 text-center">
-                                        <Upload className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
-                                        <p className="text-sm text-muted-foreground mb-3">
+                                        <Label>Address Proof Documents *</Label>
+                                        <div className="border-2 border-dashed border-border rounded-xl p-6 text-center">
+                                            <Upload className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
+                                            <p className="text-sm text-muted-foreground mb-2">
                                             Click to upload or drag and drop
                                         </p>
                                         <p className="text-xs text-muted-foreground mb-4">
-                                            PDF, JPG, PNG up to 10MB
+                                                PDF, JPG, PNG up to 10MB each
                                         </p>
                                         <input
                                             type="file"
                                             multiple
                                             accept=".pdf,.jpg,.jpeg,.png"
-                                            onChange={handleFileChange}
+                                                onChange={handleAddressProofFileChange}
                                             className="hidden"
-                                            id="file-upload"
+                                                id="address-proof-upload"
                                         />
                                         <Label
-                                            htmlFor="file-upload"
+                                                htmlFor="address-proof-upload"
                                             className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl cursor-pointer hover:opacity-90"
                                         >
                                             <Upload className="w-4 h-4" />
-                                            Choose Files
+                                                Choose Address Proof Files
                                         </Label>
                                     </div>
 
-                                    {formData.documents.length > 0 && (
+                                        {formData.address_proof_documents.length > 0 && (
+                                            <div className="mt-4 space-y-2 max-h-32 overflow-y-auto scrollbar-hide">
+                                                {formData.address_proof_documents.map((file, index) => (
+                                                    <div key={index} className="flex items-center gap-2 p-2 bg-muted rounded-lg">
+                                                        <FileText className="w-4 h-4 text-muted-foreground" />
+                                                        <span className="text-sm flex-1 truncate">{file.name}</span>
+                                                        <span className="text-xs text-muted-foreground">
+                                                            {(file.size / 1024 / 1024).toFixed(2)} MB
+                                                        </span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {errors.address_proof_documents && (
+                                            <p className="text-sm text-destructive">{errors.address_proof_documents}</p>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Contract Documents Section */}
+                                <div className="border-t pt-6">
+                                    <h3 className="text-lg font-medium mb-2">Brand Partnership Contract</h3>
+                                    <p className="text-sm text-muted-foreground mb-4">
+                                        Download and sign our partnership agreement to complete your verification.
+                                    </p>
+
+                                    <div className="space-y-4">
+                                        {/* Download Contract Link */}
+                                        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                                            <div className="flex items-start gap-3">
+                                                <FileText className="w-5 h-5 text-blue-600 mt-0.5" />
+                                                <div className="flex-1">
+                                                    <p className="font-medium text-blue-900 mb-1">Partnership Agreement</p>
+                                                    <p className="text-sm text-blue-700 mb-3">
+                                                        Download your personalized partnership agreement with pre-filled details and choose your signing method below.
+                                                    </p>
+                                                    <Button
+                                                        type="button"
+                                                        onClick={handleDownloadContract}
+                                                        disabled={isGeneratingContract || !formData.contact_name || !formData.contact_email}
+                                                        className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+                                                    >
+                                                        {isGeneratingContract ? (
+                                                            <>
+                                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                                                Generating...
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <Download className="w-4 h-4" />
+                                                                Download Contract
+                                                            </>
+                                                        )}
+                                                    </Button>
+                                                    {(!formData.contact_name || !formData.contact_email) && (
+                                                        <p className="text-xs text-blue-600 mt-2">
+                                                            Please complete previous steps to generate your personalized contract
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label>How would you like to sign the contract? *</Label>
+                                            <div className="space-y-2">
+                                                <label className="flex items-center space-x-3 p-3 border border-border rounded-xl cursor-pointer hover:border-primary">
+                                                    <input
+                                                        type="radio"
+                                                        name="contract_document_action"
+                                                        value="e_sign"
+                                                        checked={formData.contract_document_action === 'e_sign'}
+                                                        onChange={(e) => setFormData(prev => ({ ...prev, contract_document_action: e.target.value }))}
+                                                        className="text-primary focus:ring-primary"
+                                                    />
+                                                    <div>
+                                                        <p className="font-medium">Electronic Signature (Recommended)</p>
+                                                        <p className="text-sm text-muted-foreground">We&apos;ll send you a secure link to e-sign the contract</p>
+                                                    </div>
+                                                </label>
+                                                <label className="flex items-center space-x-3 p-3 border border-border rounded-xl cursor-pointer hover:border-primary">
+                                                    <input
+                                                        type="radio"
+                                                        name="contract_document_action"
+                                                        value="manual_sign"
+                                                        checked={formData.contract_document_action === 'manual_sign'}
+                                                        onChange={(e) => setFormData(prev => ({ ...prev, contract_document_action: e.target.value }))}
+                                                        className="text-primary focus:ring-primary"
+                                                    />
+                                                    <div>
+                                                        <p className="font-medium">Manual Signature</p>
+                                                        <p className="text-sm text-muted-foreground">Download, print, sign, scan and upload the contract</p>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                            {errors.contract_document_action && (
+                                                <p className="text-sm text-destructive">{errors.contract_document_action}</p>
+                                            )}
+                                        </div>
+
+                                        {formData.contract_document_action === 'manual_sign' && (
+                                            <div className="space-y-2">
+                                                <Label>Upload Signed Contract *</Label>
+                                                <div className="border-2 border-dashed border-border rounded-xl p-4 text-center">
+                                                    <FileText className="w-6 h-6 text-muted-foreground mx-auto mb-2" />
+                                                    <p className="text-sm text-muted-foreground mb-3">
+                                                        Upload your signed contract document
+                                                    </p>
+                                                    <input
+                                                        type="file"
+                                                        multiple
+                                                        accept=".pdf"
+                                                        onChange={handleContractFileChange}
+                                                        className="hidden"
+                                                        id="contract-file-upload"
+                                                    />
+                                                    <Label
+                                                        htmlFor="contract-file-upload"
+                                                        className="inline-flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-xl cursor-pointer hover:opacity-90"
+                                                    >
+                                                        <Upload className="w-4 h-4" />
+                                                        Choose Signed Contract
+                                                    </Label>
+                                                </div>
+
+                                                {formData.contract_documents.length > 0 && (
                                         <div className="mt-4 space-y-2">
-                                            {formData.documents.map((file, index) => (
+                                                        {formData.contract_documents.map((file, index) => (
                                                 <div key={index} className="flex items-center gap-2 p-2 bg-muted rounded-lg">
                                                     <FileText className="w-4 h-4 text-muted-foreground" />
                                                     <span className="text-sm flex-1 truncate">{file.name}</span>
@@ -673,16 +983,21 @@ export default function VerificationPage() {
                                         </div>
                                     )}
 
-                                    {errors.documents && (
-                                        <p className="text-sm text-destructive">{errors.documents}</p>
+                                                {errors.contract_documents && (
+                                                    <p className="text-sm text-destructive">{errors.contract_documents}</p>
                                     )}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         )}
                     </motion.div>
 
+                    </div>
+
                     {/* Navigation Buttons */}
-                    <div className="flex items-center justify-between mt-8">
+                    <div className="flex-shrink-0 flex items-center justify-between p-6 md:p-8 border-t border-border bg-card">
                         <Button
                             variant="outline"
                             onClick={handlePrevious}
