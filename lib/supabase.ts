@@ -33,6 +33,19 @@ export function getSupabaseServer(req: Request) {
   });
 }
 
+// Server-side Supabase client with service role (bypasses RLS). Use ONLY on the server.
+export function getSupabaseAdmin() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE!;
+
+  return createClient(supabaseUrl, serviceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
+}
+
 // Helper function to get authenticated user from request using anon client
 export async function getAuthenticatedUser(req: Request): Promise<{ id: string; email: string } | null> {
   try {
