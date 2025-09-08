@@ -15,21 +15,16 @@ export default function AuthPage() {
     supabase.auth.getSession().then(({ data }) => {
       if (!isMounted) return;
       if (data.session) {
+        console.log('Auth page: Found existing session, redirecting to dashboard');
         // Check user role and redirect accordingly
         // This will be handled by the StoreProvider
         router.replace("/dashboard");
       }
     });
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) {
-        // Check user role and redirect accordingly
-        // This will be handled by the StoreProvider
-        router.replace("/dashboard");
-      }
-    });
+    // Remove the auth state change listener to avoid conflicts with StoreProvider
+    // The StoreProvider will handle all authentication state changes
     return () => {
       isMounted = false;
-      sub.subscription.unsubscribe();
     };
   }, [router]);
 

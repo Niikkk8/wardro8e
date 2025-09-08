@@ -75,9 +75,9 @@ export default function StoreProvider({ children }: { children: React.ReactNode 
           }
           // If brand is not verified, funnel to verification (but don't redirect if already there)
           // Also skip redirect if on overview page and let the overview page handle the verification prompt
-          if (accountData.verified === false && 
-              pathname !== '/dashboard/verification' && 
-              pathname !== '/dashboard/overview') {
+          if (accountData.verified === false &&
+            pathname !== '/dashboard/verification' &&
+            pathname !== '/dashboard/overview') {
             router.replace('/dashboard/verification');
             return;
           }

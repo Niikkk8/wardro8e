@@ -53,6 +53,7 @@ export default function BrandSignupPage() {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
+        console.log('Signup page: Found existing session, redirecting to dashboard');
         router.push('/dashboard');
       }
     };

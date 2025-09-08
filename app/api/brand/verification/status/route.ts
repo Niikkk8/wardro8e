@@ -1,22 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseAdmin } from "@/lib/supabase";
-
-async function getUserId(req: NextRequest): Promise<string | null> {
-  const authHeader = req.headers.get("Authorization");
-  if (!authHeader?.startsWith("Bearer ")) return null;
-
-  const token = authHeader.substring(7);
-  const admin = getSupabaseAdmin();
-  const { data, error } = await admin.auth.getUser(token);
-
-  if (error || !data?.user?.id) return null;
-  return data.user.id;
-}
+import { getSupabaseAdmin, getAuthenticatedUser } from "@/lib/supabase";
 
 export async function GET(req: NextRequest) {
   try {
-    const userId = await getUserId(req);
-    if (!userId) {
+    const user = await getAuthenticatedUser(req);
+    if (!user) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
@@ -26,7 +14,7 @@ export async function GET(req: NextRequest) {
     const { data: brand, error: brandError } = await admin
       .from("brands")
       .select("id")
-      .eq("id", userId)
+      .eq("id", user.id)
       .single();
 
     if (brandError || !brand) {
@@ -37,7 +25,7 @@ export async function GET(req: NextRequest) {
     const { data: verification, error: verificationError } = await admin
       .from("brand_verifications")
       .select("*")
-      .eq("brand_id", userId)
+      .eq("brand_id", user.id)
       .single();
 
     if (verificationError && verificationError.code !== 'PGRST116') {

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseAdmin } from "@/lib/supabase";
+import { getSupabaseAdmin, getAuthenticatedUser } from "@/lib/supabase";
 import { sendVerificationSubmissionEmail } from "@/lib/email";
 
 // Type Definitions
@@ -37,22 +37,12 @@ interface SubmissionMetadata {
   submitted_at: string;
 }
 
-async function getUserId(req: NextRequest): Promise<string | null> {
-  const authHeader = req.headers.get("Authorization");
-  if (!authHeader?.startsWith("Bearer ")) return null;
-
-  const token = authHeader.substring(7);
-  const admin = getSupabaseAdmin();
-  const { data, error } = await admin.auth.getUser(token);
-
-  if (error || !data?.user?.id) return null;
-  return data.user.id;
-}
+// Remove the getUserId function since we'll use getAuthenticatedUser
 
 export async function POST(req: NextRequest) {
   try {
-    const userId = await getUserId(req);
-    if (!userId) {
+    const user = await getAuthenticatedUser(req);
+    if (!user) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
@@ -62,7 +52,7 @@ export async function POST(req: NextRequest) {
     const { data: brand, error: brandError } = await admin
       .from("brands")
       .select("id")
-      .eq("id", userId)
+      .eq("id", user.id)
       .single();
 
     if (brandError || !brand) {
@@ -123,7 +113,7 @@ export async function POST(req: NextRequest) {
       for (const file of addressProofDocuments) {
         if (file.size > 0) {
           const fileExt = file.name.split(".").pop();
-          const fileName = `${userId}/address-proof/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+          const fileName = `${user.id}/address-proof/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
           
           const { error } = await admin.storage
             .from("address-proof-docs")
@@ -153,7 +143,7 @@ export async function POST(req: NextRequest) {
       for (const file of contractDocuments) {
         if (file.size > 0) {
           const fileExt = file.name.split(".").pop();
-          const fileName = `${userId}/contracts/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+          const fileName = `${user.id}/contracts/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
           
           const { error } = await admin.storage
             .from("contract-docs")
@@ -182,7 +172,7 @@ export async function POST(req: NextRequest) {
     const { data: verification, error: verificationError } = await admin
       .from("brand_verifications")
       .upsert({
-        brand_id: userId,
+        brand_id: user.id,
         status: verificationData.contract_document_action === "e_sign" ? "awaiting_esign" : "under_review",
         business_type: verificationData.business_type,
         gstin: verificationData.gstin,

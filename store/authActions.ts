@@ -2,7 +2,7 @@ import { AppDispatch } from './index';
 import { clearAuth } from './authSlice';
 import { supabase } from '@/lib/supabase';
 
-export const login = (email: string, password: string) => async (_dispatch: AppDispatch) => {
+export const login = (email: string, password: string) => async (dispatch: AppDispatch) => {
   console.log('authActions: Starting login for:', email);
 
   const response = await fetch('/api/auth/brand/login', {
@@ -25,13 +25,23 @@ export const login = (email: string, password: string) => async (_dispatch: AppD
   }
 
   // Persist Supabase session on the client so it survives reloads
-  const { error: setErr } = await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
+  const { data: sessionData, error: setErr } = await supabase.auth.setSession({ 
+    access_token: accessToken, 
+    refresh_token: refreshToken 
+  });
+  
   if (setErr) {
     console.error('authActions: Failed to set Supabase session', setErr);
     throw setErr;
   }
 
-  console.log('authActions: Supabase session set; StoreProvider subscription will hydrate account');
+  console.log('authActions: Supabase session set successfully', { 
+    hasSession: !!sessionData.session,
+    userId: sessionData.session?.user?.id 
+  });
+
+  // Force a small delay to ensure the session is fully processed
+  await new Promise(resolve => setTimeout(resolve, 100));
 };
 
 export const logout = () => async (dispatch: AppDispatch) => {

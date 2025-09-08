@@ -1,23 +1,34 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Mail, Lock, Eye, EyeOff, AlertCircle, ArrowLeft, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useAppDispatch } from "@/store/hooks";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { login } from "@/store/authActions";
 import { validateEmail } from "@/lib/validators";
 
 export default function BrandLoginPage() {
   const dispatch = useAppDispatch();
+  const router = useRouter();
+  const authState = useAppSelector((state) => state.auth);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [show, setShow] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // Fallback redirect if StoreProvider doesn't handle it
+  useEffect(() => {
+    if (authState.account && authState.account.role === 'brand') {
+      console.log('Login page: Fallback redirect to dashboard');
+      router.replace('/dashboard');
+    }
+  }, [authState.account, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,6 +48,7 @@ export default function BrandLoginPage() {
     
     try {
       await dispatch(login(email.trim().toLowerCase(), password));
+      console.log('Login successful, waiting for redirect...');
       // Redirection is handled globally in StoreProvider
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Login failed');

@@ -1,27 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseAdmin } from "@/lib/supabase";
-
-async function getUserId(req: NextRequest): Promise<string | null> {
-  const authHeader = req.headers.get("authorization") || req.headers.get("Authorization");
-  const bearer = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : undefined;
-  const cookieToken = req.cookies.get("auth-token")?.value;
-  const accessToken = bearer || cookieToken;
-  if (!accessToken) return null;
-  const admin = getSupabaseAdmin();
-  const { data, error } = await admin.auth.getUser(accessToken);
-  if (error || !data?.user?.id) return null;
-  return data.user.id;
-}
+import { getSupabaseAdmin, getAuthenticatedUser } from "@/lib/supabase";
 
 export async function GET(req: NextRequest) {
   try {
-    const userId = await getUserId(req);
-    if (!userId) return NextResponse.json({ products: [] }, { status: 200 });
+    const user = await getAuthenticatedUser(req);
+    if (!user) return NextResponse.json({ products: [] }, { status: 200 });
+    
     const admin = getSupabaseAdmin();
     const { data, error } = await admin
       .from("products")
       .select("id,title,price,stock_quantity,is_active,created_at")
-      .eq("brand_id", userId)
+      .eq("brand_id", user.id)
       .order("created_at", { ascending: false });
     if (error) return NextResponse.json({ message: "Failed to fetch" }, { status: 500 });
     return NextResponse.json({ products: data ?? [] });
@@ -32,8 +21,9 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const userId = await getUserId(req);
-    if (!userId) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    const user = await getAuthenticatedUser(req);
+    if (!user) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    
     const body = await req.json();
     const title: string = (body?.title || "").toString().trim();
     const price: number = Number(body?.price ?? 0);
@@ -47,7 +37,7 @@ export async function POST(req: NextRequest) {
     const { data, error } = await admin
       .from("products")
       .insert({
-        brand_id: userId,
+        brand_id: user.id,
         title,
         description,
         price,
