@@ -13,19 +13,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   },
 });
 
-// Server-only Admin client factory. Never expose the service role key to the client.
-export function getSupabaseAdmin() {
-  if (typeof window !== 'undefined') {
-    throw new Error('getSupabaseAdmin() must be called on the server only');
-  }
-  const serviceRole = process.env.SUPABASE_SERVICE_ROLE;
-  if (!serviceRole) {
-    throw new Error('SUPABASE_SERVICE_ROLE is not set');
-  }
-  return createClient(supabaseUrl, serviceRole);
-}
-
-// Server-side Supabase client that can work with sessions
+// Server-side Supabase client that uses anon key and respects RLS
 export function getSupabaseServer(req: Request) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -45,7 +33,7 @@ export function getSupabaseServer(req: Request) {
   });
 }
 
-// Helper function to get authenticated user from request
+// Helper function to get authenticated user from request using anon client
 export async function getAuthenticatedUser(req: Request): Promise<{ id: string; email: string } | null> {
   try {
     // Try to get token from Authorization header first
@@ -59,8 +47,18 @@ export async function getAuthenticatedUser(req: Request): Promise<{ id: string; 
     });
     
     if (bearer) {
-      const admin = getSupabaseAdmin();
-      const { data, error } = await admin.auth.getUser(bearer);
+      // Create a client bound to the bearer token and verify it
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+      const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+      const supabaseWithToken = createClient(supabaseUrl, supabaseAnonKey, {
+        auth: { autoRefreshToken: false, persistSession: false },
+        global: {
+          headers: {
+            Authorization: `Bearer ${bearer}`,
+          },
+        },
+      });
+      const { data, error } = await supabaseWithToken.auth.getUser();
       
       if (error) {
         console.log('getAuthenticatedUser: Bearer token error', error);

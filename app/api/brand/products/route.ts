@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseAdmin, getAuthenticatedUser } from "@/lib/supabase";
+import { getSupabaseServer, getAuthenticatedUser } from "@/lib/supabase";
 
 export async function GET(req: NextRequest) {
   try {
     const user = await getAuthenticatedUser(req);
     if (!user) return NextResponse.json({ products: [] }, { status: 200 });
     
-    const admin = getSupabaseAdmin();
-    const { data, error } = await admin
+    const supabase = getSupabaseServer(req);
+    const { data, error } = await supabase
       .from("products")
       .select("id,title,price,stock_quantity,is_active,created_at")
       .eq("brand_id", user.id)
@@ -33,8 +33,8 @@ export async function POST(req: NextRequest) {
     if (!title || !Number.isFinite(price)) {
       return NextResponse.json({ message: "Invalid input" }, { status: 400 });
     }
-    const admin = getSupabaseAdmin();
-    const { data, error } = await admin
+    const supabase = getSupabaseServer(req);
+    const { data, error } = await supabase
       .from("products")
       .insert({
         brand_id: user.id,

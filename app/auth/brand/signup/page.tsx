@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useAppSelector, useAppDispatch } from "@/store/hooks";
 import { setPendingSignup, setAuthAccount } from "@/store/authSlice";
+import { login } from "@/store/authActions";
 import { validateSignupForm, type SignupForm } from "@/lib/validators";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -185,6 +186,13 @@ export default function BrandSignupPage() {
       
       // If we have session data, automatically log in the brand
       if (data.session) {
+        // Persist Supabase session on client so subsequent API calls include auth
+        if (data.session.access_token && data.session.refresh_token) {
+          await supabase.auth.setSession({
+            access_token: data.session.access_token,
+            refresh_token: data.session.refresh_token,
+          });
+        }
         // Set the account in Redux with brand information
         dispatch(setAuthAccount({
           id: data.userId,
@@ -198,8 +206,14 @@ export default function BrandSignupPage() {
         // Redirect to dashboard
         router.push('/dashboard');
       } else {
-        // Fallback to success step if no session
-        setStep("success");
+        // Fallback: perform a normal login to establish a session
+        try {
+          await dispatch(login(pendingSignup.email, pendingSignup.password));
+          router.push('/dashboard');
+        } catch {
+          // If login fails, show success step and let user sign in manually
+          setStep("success");
+        }
       }
     } catch (err: unknown) {
       setOtpError(err instanceof Error ? err.message : "Verification failed");

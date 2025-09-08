@@ -64,6 +64,7 @@ type FormData = {
     // Contract Documents
     contract_document_action: string; // 'e_sign' | 'manual_sign'
     contract_documents: File[];
+    esign_contract_document: File | null;
 };
 
 const businessTypes = [
@@ -106,6 +107,7 @@ export default function VerificationPage() {
         address_proof_documents: [],
         contract_document_action: "",
         contract_documents: [],
+        esign_contract_document: null,
     });
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isLoading, setIsLoading] = useState(false);
@@ -147,6 +149,12 @@ export default function VerificationPage() {
         try {
             const { data: sessionRes } = await supabase.auth.getSession();
             const token = sessionRes.session?.access_token;
+            
+            console.log('Verification page: Checking status', { 
+                hasSession: !!sessionRes.session, 
+                hasToken: !!token,
+                userId: sessionRes.session?.user?.id 
+            });
 
             const res = await fetch("/api/brand/verification/status", {
                 headers: token ? { Authorization: `Bearer ${token}` } : undefined,
@@ -202,6 +210,14 @@ export default function VerificationPage() {
                 contract_documents: Array.from(files),
             }));
         }
+    };
+
+    const handleEsignContractFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files;
+        setFormData(prev => ({
+            ...prev,
+            esign_contract_document: files && files.length > 0 ? files[0] : null,
+        }));
     };
 
     const validateStep = (step: Step): boolean => {
@@ -297,6 +313,12 @@ export default function VerificationPage() {
         try {
             const { data: sessionRes } = await supabase.auth.getSession();
             const token = sessionRes.session?.access_token;
+            
+            console.log('Verification page: Submitting form', { 
+                hasSession: !!sessionRes.session, 
+                hasToken: !!token,
+                userId: sessionRes.session?.user?.id 
+            });
 
             // Create FormData for file upload
             const submitData = new FormData();
@@ -325,6 +347,11 @@ export default function VerificationPage() {
                 });
             }
 
+            // If e-sign selected but user already has a signed PDF, allow upload
+            if (formData.contract_document_action === 'e_sign' && formData.esign_contract_document) {
+                submitData.append('esign_contract_document', formData.esign_contract_document);
+            }
+
             const res = await fetch("/api/brand/verification", {
                 method: "POST",
                 headers: token ? { Authorization: `Bearer ${token}` } : undefined,
@@ -333,7 +360,8 @@ export default function VerificationPage() {
             });
 
             if (res.ok) {
-                setVerificationStatus('under_review');
+                const data = await res.json();
+                setVerificationStatus(data.status ?? 'under_review');
             } else {
                 const error = await res.json();
                 setErrors({ general: error.message || "Failed to submit verification" });
@@ -943,6 +971,44 @@ export default function VerificationPage() {
                                                 <p className="text-sm text-destructive">{errors.contract_document_action}</p>
                                             )}
                                         </div>
+
+                                        {formData.contract_document_action === 'e_sign' && (
+                                            <div className="space-y-2">
+                                                <Label>Upload Signed Contract (Optional)</Label>
+                                                <div className="border-2 border-dashed border-border rounded-xl p-4 text-center">
+                                                    <FileText className="w-6 h-6 text-muted-foreground mx-auto mb-2" />
+                                                    <p className="text-sm text-muted-foreground mb-3">
+                                                        If you&apos;ve completed e-signing and have the signed PDF, upload it here.
+                                                    </p>
+                                                    <input
+                                                        type="file"
+                                                        accept=".pdf"
+                                                        onChange={handleEsignContractFileChange}
+                                                        className="hidden"
+                                                        id="esign-contract-file-upload"
+                                                    />
+                                                    <Label
+                                                        htmlFor="esign-contract-file-upload"
+                                                        className="inline-flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-xl cursor-pointer hover:opacity-90"
+                                                    >
+                                                        <Upload className="w-4 h-4" />
+                                                        Choose Signed Contract (PDF)
+                                                    </Label>
+                                                </div>
+
+                                                {formData.esign_contract_document && (
+                                                    <div className="mt-4 space-y-2">
+                                                        <div className="flex items-center gap-2 p-2 bg-muted rounded-lg">
+                                                            <FileText className="w-4 h-4 text-muted-foreground" />
+                                                            <span className="text-sm flex-1 truncate">{formData.esign_contract_document.name}</span>
+                                                            <span className="text-xs text-muted-foreground">
+                                                                {(formData.esign_contract_document.size / 1024 / 1024).toFixed(2)} MB
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
 
                                         {formData.contract_document_action === 'manual_sign' && (
                                             <div className="space-y-2">

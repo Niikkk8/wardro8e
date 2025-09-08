@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseAdmin, getAuthenticatedUser } from "@/lib/supabase";
+import { getSupabaseServer, getAuthenticatedUser } from "@/lib/supabase";
 import { sendVerificationSubmissionEmail } from "@/lib/email";
 
 // Type Definitions
@@ -41,15 +41,18 @@ interface SubmissionMetadata {
 
 export async function POST(req: NextRequest) {
   try {
+    console.log('Verification API: Checking authentication');
     const user = await getAuthenticatedUser(req);
     if (!user) {
+      console.log('Verification API: No authenticated user');
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
+    console.log('Verification API: Authenticated user found', { userId: user.id });
 
-    const admin = getSupabaseAdmin();
+    const supabase = getSupabaseServer(req);
 
-    // Check if user is a brand
-    const { data: brand, error: brandError } = await admin
+    // Check if user is a brand (RLS will handle the security)
+    const { data: brand, error: brandError } = await supabase
       .from("brands")
       .select("id")
       .eq("id", user.id)
@@ -115,7 +118,7 @@ export async function POST(req: NextRequest) {
           const fileExt = file.name.split(".").pop();
           const fileName = `${user.id}/address-proof/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
           
-          const { error } = await admin.storage
+          const { error } = await supabase.storage
             .from("address-proof-docs")
             .upload(fileName, file, {
               contentType: file.type,
@@ -145,7 +148,7 @@ export async function POST(req: NextRequest) {
           const fileExt = file.name.split(".").pop();
           const fileName = `${user.id}/contracts/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
           
-          const { error } = await admin.storage
+          const { error } = await supabase.storage
             .from("contract-docs")
             .upload(fileName, file, {
               contentType: file.type,
@@ -168,12 +171,44 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Insert verification data with proper typing
-    const { data: verification, error: verificationError } = await admin
+    // If e-sign was selected but user provides a signed contract PDF, accept it
+    const esignContract = formData.get("esign_contract_document") as File | null;
+    if (verificationData.contract_document_action === "e_sign" && esignContract && esignContract.size > 0) {
+      const fileExt = esignContract.name.split(".").pop();
+      const fileName = `${user.id}/contracts/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+      const { error } = await supabase.storage
+        .from("contract-docs")
+        .upload(fileName, esignContract, {
+          contentType: esignContract.type,
+        });
+
+      if (error) {
+        console.error("Contract upload error:", error);
+        return NextResponse.json({ 
+          message: "Failed to upload contract document" 
+        }, { status: 500 });
+      }
+
+      uploadedContractDocuments.push({
+        type: "contract",
+        url: fileName,
+        original_name: esignContract.name,
+        uploaded_at: new Date().toISOString(),
+      });
+    }
+
+    // Compute status: if e-sign but a signed doc is uploaded, move to under_review
+    const computedStatus = verificationData.contract_document_action === "e_sign"
+      ? (uploadedContractDocuments.length > 0 ? "under_review" : "awaiting_esign")
+      : "under_review";
+
+    // Insert verification data with proper typing (RLS will handle security)
+    const { data: verification, error: verificationError } = await supabase
       .from("brand_verifications")
       .upsert({
         brand_id: user.id,
-        status: verificationData.contract_document_action === "e_sign" ? "awaiting_esign" : "under_review",
+        status: computedStatus,
         business_type: verificationData.business_type,
         gstin: verificationData.gstin,
         pan_number: verificationData.pan_number,

@@ -1,17 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseAdmin, getAuthenticatedUser } from "@/lib/supabase";
+import { getSupabaseServer, getAuthenticatedUser } from "@/lib/supabase";
 
 export async function GET(req: NextRequest) {
   try {
+    console.log('Verification status API: Checking authentication');
     const user = await getAuthenticatedUser(req);
     if (!user) {
+      console.log('Verification status API: No authenticated user');
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
+    console.log('Verification status API: Authenticated user found', { userId: user.id });
 
-    const admin = getSupabaseAdmin();
+    const supabase = getSupabaseServer(req);
 
-    // Check if user is a brand
-    const { data: brand, error: brandError } = await admin
+    // Check if user is a brand (RLS will handle the security)
+    const { data: brand, error: brandError } = await supabase
       .from("brands")
       .select("id")
       .eq("id", user.id)
@@ -21,8 +24,8 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ message: "Brand not found" }, { status: 404 });
     }
 
-    // Get verification status
-    const { data: verification, error: verificationError } = await admin
+    // Get verification status (RLS will handle the security)
+    const { data: verification, error: verificationError } = await supabase
       .from("brand_verifications")
       .select("*")
       .eq("brand_id", user.id)
