@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
 import {
     Building2,
@@ -84,6 +84,47 @@ const steps = [
     { id: 5, title: "Documents", icon: Upload },
 ];
 
+// Local storage key for verification form data
+const VERIFICATION_FORM_STORAGE_KEY = 'wardro8e_verification_form';
+
+// Helper function to save form data to localStorage (excluding files)
+const saveFormDataToLocalStorage = (data: FormData) => {
+    try {
+        // Create a copy without file objects (can't be serialized)
+        const dataToSave = {
+            ...data,
+            address_proof_documents: [], // Files can't be stored in localStorage
+            contract_documents: [], // Files can't be stored in localStorage
+            esign_contract_document: null, // Files can't be stored in localStorage
+        };
+        localStorage.setItem(VERIFICATION_FORM_STORAGE_KEY, JSON.stringify(dataToSave));
+    } catch (error) {
+        console.error('Error saving form data to localStorage:', error);
+    }
+};
+
+// Helper function to load form data from localStorage
+const loadFormDataFromLocalStorage = (): Partial<FormData> | null => {
+    try {
+        const savedData = localStorage.getItem(VERIFICATION_FORM_STORAGE_KEY);
+        if (savedData) {
+            return JSON.parse(savedData);
+        }
+    } catch (error) {
+        console.error('Error loading form data from localStorage:', error);
+    }
+    return null;
+};
+
+// Helper function to clear form data from localStorage
+const clearFormDataFromLocalStorage = () => {
+    try {
+        localStorage.removeItem(VERIFICATION_FORM_STORAGE_KEY);
+    } catch (error) {
+        console.error('Error clearing form data from localStorage:', error);
+    }
+};
+
 export default function VerificationPage() {
     const [currentStep, setCurrentStep] = useState<Step>(1);
     const [formData, setFormData] = useState<FormData>({
@@ -109,6 +150,19 @@ export default function VerificationPage() {
         contract_documents: [],
         esign_contract_document: null,
     });
+    
+    // Debounced save function to prevent excessive localStorage writes
+    const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const debouncedSaveToLocalStorage = useCallback((data: FormData) => {
+        if (saveTimeoutRef.current) {
+            clearTimeout(saveTimeoutRef.current);
+        }
+        setIsSaving(true);
+        saveTimeoutRef.current = setTimeout(() => {
+            saveFormDataToLocalStorage(data);
+            setIsSaving(false);
+        }, 500); // 500ms debounce delay
+    }, []);
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isLoading, setIsLoading] = useState(false);
     const [isCheckingStatus, setIsCheckingStatus] = useState(true);
@@ -117,11 +171,36 @@ export default function VerificationPage() {
     const [userIP, setUserIP] = useState<string>("");
     const [isGeneratingContract, setIsGeneratingContract] = useState(false);
     const [userBrandName, setUserBrandName] = useState<string>("");
+    const [isSaving, setIsSaving] = useState(false);
+
+    // Load saved form data from localStorage on component mount
+    useEffect(() => {
+        const savedFormData = loadFormDataFromLocalStorage();
+        if (savedFormData) {
+            setFormData(prev => ({
+                ...prev,
+                ...savedFormData,
+                // Keep file arrays empty as they can't be stored in localStorage
+                address_proof_documents: [],
+                contract_documents: [],
+                esign_contract_document: null,
+            }));
+        }
+    }, []);
 
     useEffect(() => {
         checkVerificationStatus();
         fetchUserIP();
         fetchUserBrandName();
+    }, []);
+
+    // Cleanup timeout on unmount
+    useEffect(() => {
+        return () => {
+            if (saveTimeoutRef.current) {
+                clearTimeout(saveTimeoutRef.current);
+            }
+        };
     }, []);
 
     const fetchUserBrandName = async () => {
@@ -184,7 +263,11 @@ export default function VerificationPage() {
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+        const updatedFormData = { ...formData, [name]: value };
+        setFormData(updatedFormData);
+
+        // Debounced save to localStorage after updating form data
+        debouncedSaveToLocalStorage(updatedFormData);
 
         // Clear error for this field
         if (errors[name]) {
@@ -362,6 +445,9 @@ export default function VerificationPage() {
             if (res.ok) {
                 const data = await res.json();
                 setVerificationStatus(data.status ?? 'under_review');
+                
+                // Clear localStorage on successful submission
+                clearFormDataFromLocalStorage();
             } else {
                 const error = await res.json();
                 setErrors({ general: error.message || "Failed to submit verification" });
@@ -467,10 +553,20 @@ export default function VerificationPage() {
         <div className="h-full">
             <div className="h-full flex flex-col max-w-4xl mx-auto p-6 md:p-8">
                 <div className="flex-shrink-0 mb-8">
-                <h1 className="text-3xl md:text-4xl mb-2">Brand Verification</h1>
-                    <p className="text-muted-foreground">
-                    Complete your verification to start selling on Wardro8e
-                </p>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h1 className="text-3xl md:text-4xl mb-2">Brand Verification</h1>
+                            <p className="text-muted-foreground">
+                                Complete your verification to start selling on Wardro8e
+                            </p>
+                        </div>
+                        {isSaving && (
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                Saving...
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 {/* Progress Steps */}
@@ -549,7 +645,11 @@ export default function VerificationPage() {
                                     <select
                                         name="business_type"
                                         value={formData.business_type}
-                                        onChange={(e) => setFormData(prev => ({ ...prev, business_type: e.target.value }))}
+                                        onChange={(e) => {
+                                            const updatedFormData = { ...formData, business_type: e.target.value };
+                                            setFormData(updatedFormData);
+                                            debouncedSaveToLocalStorage(updatedFormData);
+                                        }}
                                                 className={cn(
                                             "w-full px-3 py-2 rounded-xl border border-border bg-background text-foreground",
                                             "focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary",
@@ -944,7 +1044,11 @@ export default function VerificationPage() {
                                                         name="contract_document_action"
                                                         value="e_sign"
                                                         checked={formData.contract_document_action === 'e_sign'}
-                                                        onChange={(e) => setFormData(prev => ({ ...prev, contract_document_action: e.target.value }))}
+                                                        onChange={(e) => {
+                                                            const updatedFormData = { ...formData, contract_document_action: e.target.value };
+                                                            setFormData(updatedFormData);
+                                                            debouncedSaveToLocalStorage(updatedFormData);
+                                                        }}
                                                         className="text-primary focus:ring-primary"
                                                     />
                                                     <div>
@@ -958,7 +1062,11 @@ export default function VerificationPage() {
                                                         name="contract_document_action"
                                                         value="manual_sign"
                                                         checked={formData.contract_document_action === 'manual_sign'}
-                                                        onChange={(e) => setFormData(prev => ({ ...prev, contract_document_action: e.target.value }))}
+                                                        onChange={(e) => {
+                                                            const updatedFormData = { ...formData, contract_document_action: e.target.value };
+                                                            setFormData(updatedFormData);
+                                                            debouncedSaveToLocalStorage(updatedFormData);
+                                                        }}
                                                         className="text-primary focus:ring-primary"
                                                     />
                                                     <div>
