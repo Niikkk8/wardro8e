@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from sentence_transformers import SentenceTransformer
 from pydantic import BaseModel
 import numpy as np
@@ -13,6 +14,15 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Wardro8e AI Embeddings", version="1.0.0")
+
+# Add CORS middleware to allow requests from your Next.js app
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # In production, specify your domain
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Initialize CLIP model (runs once when server starts)
 try:

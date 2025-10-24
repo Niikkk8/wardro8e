@@ -160,31 +160,59 @@ export async function POST(req: NextRequest) {
     
     // Generate AI embeddings asynchronously (don't wait for this)
     if (process.env.PYTHON_SERVICE_URL && imageUrls.length > 0) {
+      const embeddingServiceUrl = process.env.PYTHON_SERVICE_URL;
+      console.log(`🤖 Attempting to generate embedding for product ${product.id}`);
+      console.log(`📡 Embedding service URL: ${embeddingServiceUrl}`);
+      console.log(`🖼️  Image URL: ${imageUrls[0]}`);
+      
       // Generate embedding for the first image
-      fetch(`${process.env.PYTHON_SERVICE_URL}/generate-embedding`, {
+      fetch(`${embeddingServiceUrl}/generate-embedding`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ image_url: imageUrls[0] }),
       })
       .then(async (response) => {
+        console.log(`📥 Embedding service response status: ${response.status}`);
+        
         if (response.ok) {
-          const { embedding } = await response.json();
+          const responseData = await response.json();
+          console.log(`✅ Received embedding data:`, {
+            dimensions: responseData.dimensions,
+            model: responseData.model,
+            embeddingLength: responseData.embedding?.length
+          });
+          
+          const { embedding } = responseData;
+          
           // Update product with embedding
-          await supabase
+          const { error: updateError } = await supabase
             .from("products")
             .update({ embedding })
             .eq("id", product.id);
-          console.log(`Generated embedding for product ${product.id}`);
+          
+          if (updateError) {
+            console.error(`❌ Failed to save embedding to database:`, updateError);
+          } else {
+            console.log(`✅ Successfully saved embedding for product ${product.id}`);
+          }
         } else {
-          console.error(`Embedding service error: ${response.status}`);
+          const errorText = await response.text();
+          console.error(`❌ Embedding service error (${response.status}):`, errorText);
         }
       })
       .catch((error) => {
-        console.error("Failed to generate embedding:", error);
+        console.error("❌ Failed to generate embedding - Network/Fetch error:", error);
+        console.error("Error details:", {
+          message: error.message,
+          name: error.name,
+          stack: error.stack
+        });
         // Don't fail the request if embedding generation fails
       });
     } else if (!process.env.PYTHON_SERVICE_URL) {
-      console.log("PYTHON_SERVICE_URL not configured, skipping embedding generation");
+      console.warn("⚠️  PYTHON_SERVICE_URL not configured, skipping embedding generation");
+    } else if (imageUrls.length === 0) {
+      console.warn("⚠️  No images uploaded, skipping embedding generation");
     }
     
     return NextResponse.json({ 
