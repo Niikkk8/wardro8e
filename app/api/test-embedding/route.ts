@@ -1,5 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 
+interface TestResult {
+  name: string;
+  status: string;
+  data?: Record<string, unknown>;
+  statusCode?: number;
+  error?: string;
+  stack?: string;
+}
+
+interface TestResults {
+  pythonServiceUrl: string;
+  tests: TestResult[];
+}
+
 /**
  * Test endpoint to verify embedding service connectivity
  * Visit: /api/test-embedding
@@ -15,7 +29,7 @@ export async function GET(req: NextRequest) {
     }, { status: 500 });
   }
 
-  const results: any = {
+  const results: TestResults = {
     pythonServiceUrl,
     tests: []
   };
@@ -43,11 +57,11 @@ export async function GET(req: NextRequest) {
         error: await healthResponse.text()
       });
     }
-  } catch (error: any) {
+  } catch (error) {
     results.tests.push({
       name: "Health Check",
       status: "❌ FAIL",
-      error: error.message
+      error: error instanceof Error ? error.message : String(error)
     });
   }
 
@@ -72,11 +86,11 @@ export async function GET(req: NextRequest) {
         statusCode: rootResponse.status
       });
     }
-  } catch (error: any) {
+  } catch (error) {
     results.tests.push({
       name: "Root Endpoint",
       status: "❌ FAIL",
-      error: error.message
+      error: error instanceof Error ? error.message : String(error)
     });
   }
 
@@ -114,16 +128,16 @@ export async function GET(req: NextRequest) {
         error: errorText
       });
     }
-  } catch (error: any) {
+  } catch (error) {
     results.tests.push({
       name: "Embedding Generation (Test Image)",
       status: "❌ FAIL",
-      error: error.message,
-      stack: error.stack
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined
     });
   }
 
-  const allPassed = results.tests.every((test: any) => test.status.includes("✅"));
+  const allPassed = results.tests.every((test) => test.status.includes("✅"));
 
   return NextResponse.json({
     success: allPassed,
