@@ -158,20 +158,26 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: "Failed to create product" }, { status: 500 });
     }
     
-    // Generate AI embeddings asynchronously (don't wait for this)
+    // Generate AI embeddings (wait for this to complete in production)
     if (process.env.PYTHON_SERVICE_URL && imageUrls.length > 0) {
       const embeddingServiceUrl = process.env.PYTHON_SERVICE_URL;
       console.log(`🤖 Attempting to generate embedding for product ${product.id}`);
       console.log(`📡 Embedding service URL: ${embeddingServiceUrl}`);
       console.log(`🖼️  Image URL: ${imageUrls[0]}`);
       
-      // Generate embedding for the first image
-      fetch(`${embeddingServiceUrl}/generate-embedding`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image_url: imageUrls[0] }),
-      })
-      .then(async (response) => {
+      try {
+        // Generate embedding for the first image with timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 25000); // 25 second timeout
+        
+        const response = await fetch(`${embeddingServiceUrl}/generate-embedding`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image_url: imageUrls[0] }),
+          signal: controller.signal,
+        });
+        
+        clearTimeout(timeoutId);
         console.log(`📥 Embedding service response status: ${response.status}`);
         
         if (response.ok) {
@@ -199,16 +205,18 @@ export async function POST(req: NextRequest) {
           const errorText = await response.text();
           console.error(`❌ Embedding service error (${response.status}):`, errorText);
         }
-      })
-      .catch((error) => {
-        console.error("❌ Failed to generate embedding - Network/Fetch error:", error);
-        console.error("Error details:", {
-          message: error.message,
-          name: error.name,
-          stack: error.stack
-        });
-        // Don't fail the request if embedding generation fails
-      });
+      } catch (error) {
+        if ((error as Error).name === 'AbortError') {
+          console.error("❌ Embedding generation timed out after 25 seconds");
+        } else {
+          console.error("❌ Failed to generate embedding - Network/Fetch error:", error);
+          console.error("Error details:", {
+            message: (error as Error).message,
+            name: (error as Error).name,
+          });
+        }
+        // Don't fail the product creation if embedding generation fails
+      }
     } else if (!process.env.PYTHON_SERVICE_URL) {
       console.warn("⚠️  PYTHON_SERVICE_URL not configured, skipping embedding generation");
     } else if (imageUrls.length === 0) {
