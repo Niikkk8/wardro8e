@@ -38,66 +38,160 @@ const clothingCategories = [
   { value: "bottoms", label: "Bottoms" },
   { value: "outerwear", label: "Outerwear" },
   { value: "ethnic", label: "Ethnic Wear" },
+  { value: "coordinates", label: "Co-ords & Sets" },
+  { value: "activewear", label: "Activewear" },
+  { value: "loungewear", label: "Loungewear" },
+  { value: "swimwear", label: "Swimwear" },
 ];
 
 const subcategories: { [key: string]: { value: string; label: string }[] } = {
   tops: [
     { value: "", label: "Select Subcategory" },
-    { value: "shirts", label: "Shirts & Blouses" },
+    { value: "shirts", label: "Shirts" },
+    { value: "blouses", label: "Blouses" },
     { value: "t-shirts", label: "T-Shirts" },
     { value: "crop-tops", label: "Crop Tops" },
     { value: "tank-tops", label: "Tank Tops" },
+    { value: "tube-tops", label: "Tube Tops" },
+    { value: "camisoles", label: "Camisoles" },
+    { value: "bodysuits", label: "Bodysuits" },
+    { value: "corsets", label: "Corsets" },
     { value: "sweaters", label: "Sweaters" },
+    { value: "knitwear", label: "Knitwear" },
+    { value: "hoodies", label: "Hoodies" },
+    { value: "sweatshirts", label: "Sweatshirts" },
+    { value: "polos", label: "Polos" },
   ],
   dresses: [
     { value: "", label: "Select Subcategory" },
     { value: "maxi", label: "Maxi Dresses" },
     { value: "midi", label: "Midi Dresses" },
     { value: "mini", label: "Mini Dresses" },
+    { value: "bodycon", label: "Bodycon Dresses" },
     { value: "cocktail", label: "Cocktail Dresses" },
+    { value: "wrap", label: "Wrap Dresses" },
+    { value: "shift", label: "Shift Dresses" },
+    { value: "a-line", label: "A-Line Dresses" },
+    { value: "fit-and-flare", label: "Fit & Flare" },
+    { value: "shirt-dress", label: "Shirt Dresses" },
+    { value: "sundress", label: "Sundresses" },
     { value: "casual", label: "Casual Dresses" },
   ],
   bottoms: [
     { value: "", label: "Select Subcategory" },
     { value: "jeans", label: "Jeans" },
     { value: "trousers", label: "Trousers" },
+    { value: "formal-trousers", label: "Formal Trousers" },
+    { value: "track-pants", label: "Track Pants" },
+    { value: "joggers", label: "Joggers" },
+    { value: "cargo-pants", label: "Cargo Pants" },
     { value: "skirts", label: "Skirts" },
+    { value: "mini-skirts", label: "Mini Skirts" },
+    { value: "maxi-skirts", label: "Maxi Skirts" },
     { value: "shorts", label: "Shorts" },
     { value: "leggings", label: "Leggings" },
+    { value: "palazzos", label: "Palazzos" },
+    { value: "culottes", label: "Culottes" },
+    { value: "dhoti-pants", label: "Dhoti Pants" },
   ],
   outerwear: [
     { value: "", label: "Select Subcategory" },
     { value: "jackets", label: "Jackets" },
-    { value: "coats", label: "Coats" },
     { value: "blazers", label: "Blazers" },
+    { value: "coats", label: "Coats" },
     { value: "cardigans", label: "Cardigans" },
+    { value: "shrugs", label: "Shrugs" },
+    { value: "windbreakers", label: "Windbreakers" },
+    { value: "leather-jackets", label: "Leather Jackets" },
+    { value: "denim-jackets", label: "Denim Jackets" },
+    { value: "bomber-jackets", label: "Bomber Jackets" },
+    { value: "puffer-jackets", label: "Puffer Jackets" },
   ],
   ethnic: [
     { value: "", label: "Select Subcategory" },
     { value: "sarees", label: "Sarees" },
     { value: "kurtas", label: "Kurtas" },
+    { value: "kurtis", label: "Kurtis" },
     { value: "lehengas", label: "Lehengas" },
     { value: "salwar-suits", label: "Salwar Suits" },
+    { value: "anarkalis", label: "Anarkalis" },
+    { value: "sharara", label: "Sharara" },
+    { value: "gharara", label: "Gharara" },
+    { value: "indo-western", label: "Indo-Western" },
+    { value: "blouses", label: "Blouses" },
+    { value: "dupattas", label: "Dupattas" },
+    { value: "dhoti-sets", label: "Dhoti Sets" },
+  ],
+  coordinates: [
+    { value: "", label: "Select Subcategory" },
+    { value: "coord-sets", label: "Coord Sets" },
+    { value: "two-piece-sets", label: "Two-Piece Sets" },
+    { value: "jumpsuits", label: "Jumpsuits" },
+    { value: "playsuits", label: "Playsuits" },
+    { value: "dungarees", label: "Dungarees" },
+    { value: "rompers", label: "Rompers" },
+    { value: "monokinis", label: "Monokinis" },
+  ],
+  activewear: [
+    { value: "", label: "Select Subcategory" },
+    { value: "sports-bra", label: "Sports Bra" },
+    { value: "gym-leggings", label: "Gym Leggings" },
+    { value: "yoga-pants", label: "Yoga Pants" },
+    { value: "gym-shorts", label: "Gym Shorts" },
+    { value: "sports-tops", label: "Sports Tops" },
+    { value: "track-pants", label: "Track Pants" },
+    { value: "tracksuits", label: "Tracksuits" },
+    { value: "cycling-shorts", label: "Cycling Shorts" },
+    { value: "compression-wear", label: "Compression Wear" },
+  ],
+  loungewear: [
+    { value: "", label: "Select Subcategory" },
+    { value: "pajamas", label: "Pajamas" },
+    { value: "nightgowns", label: "Nightgowns" },
+    { value: "robes", label: "Robes" },
+    { value: "sleepwear-sets", label: "Sleepwear Sets" },
+    { value: "lounge-sets", label: "Lounge Sets" },
+    { value: "oversized-tees", label: "Oversized Tees" },
+    { value: "nightsuits", label: "Nightsuits" },
+  ],
+  swimwear: [
+    { value: "", label: "Select Subcategory" },
+    { value: "bikinis", label: "Bikinis" },
+    { value: "one-piece", label: "One-Piece" },
+    { value: "tankinis", label: "Tankinis" },
+    { value: "swim-shorts", label: "Swim Shorts" },
+    { value: "cover-ups", label: "Cover-Ups" },
+    { value: "beach-dresses", label: "Beach Dresses" },
+    { value: "swim-sets", label: "Swim Sets" },
   ],
 };
 
 // Predefined clothing attributes
 const colors = [
-  "Black", "White", "Red", "Blue", "Green", "Yellow", "Pink", "Purple", 
-  "Orange", "Brown", "Gray", "Navy", "Beige", "Maroon", "Teal", "Coral"
+  "Black", "White", "Red", "Blue", "Green", "Yellow", "Pink", "Purple",
+  "Orange", "Brown", "Gray", "Navy", "Beige", "Maroon", "Teal",
+  "Ivory", "Cream", "Off White", "Lavender", "Lilac", "Mint", "Sage",
+  "Coral", "Peach", "Olive", "Rust", "Mustard", "Burgundy", "Wine",
+  "Gold", "Silver", "Rose Gold", "Charcoal", "Multicolor",
 ];
 
 const patterns = [
-  "Solid", "Stripes", "Floral", "Polka Dots", "Geometric", "Abstract", 
-  "Animal Print", "Paisley", "Checkered", "Plaid", "Tie-Dye"
+  "Solid", "Stripes", "Floral", "Polka Dots", "Geometric", "Abstract",
+  "Animal Print", "Paisley", "Checkered", "Plaid", "Tie-Dye", "Ombre",
+  "Colorblock", "Embroidered", "Sequined", "Printed", "Graphic Print",
+  "Camouflage", "Ikat", "Batik", "Tropical",
 ];
 
 const materials = [
-  "Cotton", "Silk", "Polyester", "Linen", "Wool", "Denim", "Chiffon", 
-  "Satin", "Velvet", "Knit", "Leather", "Lace", "Georgette", "Crepe"
+  "Cotton", "Silk", "Polyester", "Linen", "Wool", "Denim", "Chiffon",
+  "Satin", "Velvet", "Georgette", "Lycra", "Spandex", "Rayon", "Viscose",
+  "Crepe", "Net", "Organza", "Nylon", "Acrylic", "Modal", "Bamboo",
+  "Jersey", "Fleece", "Terry", "Leather", "Faux Leather", "Lace", "Mesh",
+  "Jacquard", "Brocade", "Muslin",
 ];
 
-const sizes = ["XS", "S", "M", "L", "XL", "XXL"];
+const alphaSizes = ["XS", "S", "M", "L", "XL", "XXL", "XXXL", "Free Size"];
+const numericSizes = ["26", "28", "30", "32", "34", "36", "38", "40", "42"];
 
 // Steps configuration
 const steps = [
@@ -566,8 +660,8 @@ export default function ClothingProductForm({ onClose, onSuccess }: ClothingProd
             {/* Size Selection */}
             <div className="space-y-2">
               <Label>Available Sizes *</Label>
-              <div className="flex flex-wrap gap-2">
-                {sizes.map(size => (
+              <div className="flex flex-wrap gap-2 mb-2">
+                {alphaSizes.map(size => (
                   <button
                     key={size}
                     type="button"
@@ -583,6 +677,28 @@ export default function ClothingProductForm({ onClose, onSuccess }: ClothingProd
                   </button>
                 ))}
               </div>
+              {(formData.category === "bottoms" || formData.category === "activewear") && (
+                <>
+                  <p className="text-xs text-muted-foreground font-medium">Waist / Numeric Sizes</p>
+                  <div className="flex flex-wrap gap-2">
+                    {numericSizes.map(size => (
+                      <button
+                        key={size}
+                        type="button"
+                        onClick={() => handleSizeToggle(size)}
+                        className={cn(
+                          "px-4 py-2 rounded-lg border text-sm font-medium transition-colors",
+                          formData.size_range.includes(size)
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : "bg-background border-border hover:border-primary"
+                        )}
+                      >
+                        {size}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
               {errors.size_range && <p className="text-red-500 text-sm">{errors.size_range}</p>}
             </div>
 
